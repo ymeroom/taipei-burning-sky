@@ -85,3 +85,23 @@ export function scoreEvent({ cloudLow, cloudMid, cloudHigh, humidity, visibility
   const score = factors.reduce((sum, f) => sum + f.score, 0);
   return { score, level: levelFor(score), factors };
 }
+
+// 對 Open-Meteo 每小時序列做線性插值，取得事件時刻（如日落 17:43）的數值。
+export function interpolate(times, values, target) {
+  if (target <= times[0]) return firstNonNull(values[0], values[1]);
+  const last = times.length - 1;
+  if (target >= times[last]) return firstNonNull(values[last], values[last - 1]);
+  let i = times.findIndex(t => t >= target);
+  const t0 = times[i - 1], t1 = times[i];
+  const v0 = values[i - 1], v1 = values[i];
+  if (v0 == null && v1 == null) throw new Error(`interpolate: 兩端皆為 null（index ${i}）`);
+  if (v0 == null) return v1;
+  if (v1 == null) return v0;
+  return v0 + (v1 - v0) * ((target - t0) / (t1 - t0));
+}
+
+function firstNonNull(a, b) {
+  if (a != null) return a;
+  if (b != null) return b;
+  throw new Error('interpolate: 端點皆為 null');
+}
