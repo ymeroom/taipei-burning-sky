@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { fetchJsonWithRetry, conditionsAt, buildData, readHistory } from './update.mjs';
 
 const ok = data => ({ ok: true, json: async () => data });
-const fail = status => ({ ok: false, status });
+// 失敗回應也給 json()：若實作漏掉 res.ok 檢查而逕自解析 body，測試才會抓得到
+const fail = status => ({ ok: false, status, json: async () => ({ 不該被讀到: true }) });
 
 test('fetchJsonWithRetry 首次成功直接回傳', async () => {
   const result = await fetchJsonWithRetry('http://x', async () => ok({ a: 1 }), [0, 0, 0]);
@@ -25,6 +26,16 @@ test('fetchJsonWithRetry 全部失敗（1+3 次）後拋錯', async () => {
   let calls = 0;
   const impl = async () => { calls++; throw new Error('網路爆炸'); };
   await assert.rejects(() => fetchJsonWithRetry('http://x', impl, [0, 0, 0]), /網路爆炸/);
+  assert.equal(calls, 4);
+});
+
+test('fetchJsonWithRetry HTTP 非 2xx 視為失敗，錯誤帶狀態碼與網址', async () => {
+  let calls = 0;
+  const impl = async () => { calls++; return fail(500); };
+  await assert.rejects(
+    () => fetchJsonWithRetry('http://x', impl, [0, 0, 0]),
+    err => /HTTP 500/.test(err.message) && /http:\/\/x/.test(err.message),
+  );
   assert.equal(calls, 4);
 });
 
@@ -92,13 +103,28 @@ test('conditionsAt 遇到 API 未回傳 AOD 欄位時拋出含欄位名的錯誤
   );
 });
 
-test('conditionsAt 遇到非數值（字串）時拋出含欄位名的錯誤', () => {
-  const forecast = makeForecast({ relative_humidity_2m: fill('高') });
-  assert.throws(
-    () => conditionsAt(forecast, makeAir(), epochOf('2026-08-05T18:35')),
-    /conditionsAt: humidity 非有限數值/,
-  );
-});
+// 七個欄位逐一驗證：每個都要真的被 Number.isFinite 檢查到，而不是只有其中一兩個。
+const FIELD_TO_HOURLY_KEY = {
+  cloudLow: 'cloud_cover_low',
+  cloudMid: 'cloud_cover_mid',
+  cloudHigh: 'cloud_cover_high',
+  humidity: 'relative_humidity_2m',
+  visibility: 'visibility',
+  precipProb: 'precipitation_probability',
+  aod: 'aerosol_optical_depth',
+};
+
+for (const [field, hourlyKey] of Object.entries(FIELD_TO_HOURLY_KEY)) {
+  test(`conditionsAt 的 ${field} 為非數值（字串）時拋出含欄位名的錯誤`, () => {
+    const corrupted = { [hourlyKey]: fill('高') };
+    const forecast = field === 'aod' ? makeForecast() : makeForecast(corrupted);
+    const air = field === 'aod' ? makeAir(corrupted) : makeAir();
+    assert.throws(
+      () => conditionsAt(forecast, air, epochOf('2026-08-05T18:35')),
+      new RegExp(`conditionsAt: ${field} 非有限數值`),
+    );
+  });
+}
 
 test('buildData 在缺值時整批失敗，不回傳半套資料', () => {
   const air = makeAir({ aerosol_optical_depth: fill(null) });
@@ -129,6 +155,17 @@ test('buildData 組出下一場日出日落與 3 天趨勢', () => {
   assert.equal(data.outlook[0].sunrise.time, `2026-08-06T${SUNRISE}:00+08:00`);
   assert.equal(data.outlook[0].sunset.time, `2026-08-06T${SUNSET}:00+08:00`);
   assert.ok(Number.isInteger(data.outlook[0].sunset.score));
+});
+
+// 鎖住「事件時刻以 +08:00 解析」：19:00 已過今日日落（18:35 台北時間），
+// 下一場日落必須是明天。若把 toEpoch 的時區換成 +00:00，今日日落會被誤判為未來而挑錯天。
+test('buildData 在今日日落之後執行，下一場日落是明天（事件時刻以 +08:00 解析）', () => {
+  const now = epochOf('2026-08-05T19:00');
+  const data = buildData(makeForecast(), makeAir(), 'sunset-run', now);
+
+  assert.equal(data.next.sunset.eventTime, `2026-08-06T${SUNSET}:00+08:00`);
+  assert.equal(data.next.sunrise.eventTime, `2026-08-06T${SUNRISE}:00+08:00`);
+  assert.deepEqual(data.outlook.map(d => d.date), ['2026-08-06', '2026-08-07', '2026-08-08']);
 });
 
 // ---- history.json 讀取：只容忍「檔案不存在」，其餘一律大聲失敗 ----
@@ -163,6 +200,16 @@ test('readHistory 遇到壞掉的 JSON 時拋錯，不靜默清空歷史', async
     await assert.rejects(() => readHistory(path), err =>
       err instanceof Error && !(err.code === 'ENOENT'));
   });
+});
+
+// 把目錄本身當檔案讀 → EISDIR（Windows 與 Linux 皆同），鎖住「只吞 ENOENT」這條約束
+test('readHistory 遇到非 ENOENT 的讀檔錯誤時往外拋', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'burning-sky-'));
+  try {
+    await assert.rejects(() => readHistory(dir), err => err.code === 'EISDIR');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('readHistory 讀到非陣列的 JSON 時拋錯', async () => {
