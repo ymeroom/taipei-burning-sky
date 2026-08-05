@@ -118,6 +118,8 @@ test('interpolate 線性內插', () => {
   const times = [0, 3600_000, 7200_000];
   assert.equal(interpolate(times, [0, 100, 50], 1800_000), 50);
   assert.equal(interpolate(times, [0, 100, 50], 5400_000), 75);
+  // 非中點：中點斷言在公式方向顛倒時仍會過，這行才鎖得住方向（顛倒會得 75）
+  assert.equal(interpolate(times, [0, 100, 50], 900_000), 25);
 });
 
 test('interpolate 恰為整點取原值', () => {
