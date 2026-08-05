@@ -139,7 +139,7 @@ function render(data, history) {
     `資料更新於 ${fmtDate(data.generatedAt)} ${fmtTime(data.generatedAt)}（台北時間）`;
   const hours = (Date.now() - new Date(data.generatedAt)) / 3600000;
   const stale = document.getElementById('stale');
-  if (hours > 12) { stale.hidden = false; stale.textContent = `⚠ 資料已 ${Math.floor(hours)} 小時未更新，可能排程失敗，分數僅供參考`; }
+  if (hours > 16) { stale.hidden = false; stale.textContent = `⚠ 資料已 ${Math.floor(hours)} 小時未更新，可能排程失敗，分數僅供參考`; }
   else { stale.hidden = true; }
   document.getElementById('app').hidden = false;
 }

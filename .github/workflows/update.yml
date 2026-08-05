@@ -1,0 +1,34 @@
+name: 更新火燒雲預報
+
+on:
+  schedule:
+    - cron: '0 7 * * *'    # 台北 15:00 → 今晚日落
+    - cron: '30 15 * * *'  # 台北 23:30 → 明早日出
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-forecast
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 單元測試
+        run: node --test
+      - name: 計算預報
+        run: node scripts/update.mjs "${{ github.event.schedule == '0 7 * * *' && 'sunset-run' || (github.event.schedule == '30 15 * * *' && 'sunrise-run' || 'manual') }}"
+      - name: Commit 資料
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json docs/history.json
+          git diff --cached --quiet || git commit -m "chore: 更新預報資料"
+          git push
