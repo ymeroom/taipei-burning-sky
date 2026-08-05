@@ -28,10 +28,12 @@ test('全陰天（中高雲 ≥95%）→ 畫布 0 分', () => {
 });
 
 test('中高雲合成量以 100 為上限（60+70 視為 100）', () => {
-  const a = scoreEvent({ ...IDEAL, cloudMid: 60, cloudHigh: 70 });
-  const b = scoreEvent({ ...IDEAL, cloudMid: 50, cloudHigh: 50 });
-  assert.equal(a.factors.find(f => f.key === 'canvas').score,
-               b.factors.find(f => f.key === 'canvas').score);
+  const a = scoreEvent({ ...IDEAL, cloudMid: 60, cloudHigh: 70 }).factors.find(f => f.key === 'canvas');
+  const b = scoreEvent({ ...IDEAL, cloudMid: 50, cloudHigh: 50 }).factors.find(f => f.key === 'canvas');
+  // 分數兩邊都落在 ≥95→0 分支，無鑑別力；顯示值才看得出有沒有 cap（沒 cap 會是 130%）
+  assert.equal(a.value, '中高雲合計 100%');
+  assert.equal(b.value, '中高雲合計 100%');
+  assert.equal(a.score, b.score);
 });
 
 test('低雲滿天（≥70%）→ 低雲因子 0 分', () => {
@@ -80,5 +82,51 @@ test('每個因子都有白話理由與實測值字串', () => {
     assert.ok(f.reason.length >= 4, `${f.key} 缺 reason`);
     assert.ok(typeof f.value === 'string' && f.value.length > 0);
     assert.ok(Number.isInteger(f.score));
+  }
+});
+
+test('每個因子都有 key、繁體中文 name，且 max 等於對應權重', () => {
+  const factors = scoreEvent(IDEAL).factors;
+  assert.deepEqual(factors.map(f => f.key).sort(), Object.keys(WEIGHTS).sort());
+  for (const f of factors) {
+    assert.ok(typeof f.key === 'string' && f.key.length > 0, '因子缺 key');
+    assert.ok(typeof f.name === 'string' && /[一-鿿]/.test(f.name), `${f.key} 的 name 不是中文字串`);
+    assert.equal(f.max, WEIGHTS[f.key], `${f.key} 的 max 與 WEIGHTS 不一致`);
+  }
+});
+
+test('canvas 斜率三點（12.5→20、77.5→20、61→39）', () => {
+  const canvasOf = (mid, high) => scoreEvent({ ...IDEAL, cloudMid: mid, cloudHigh: high }).factors.find(f => f.key === 'canvas').score;
+  assert.equal(canvasOf(5, 7.5), 20);    // 合計 12.5：上升段 12.5/25 = 0.5
+  assert.equal(canvasOf(40, 37.5), 20);  // 合計 77.5：下降段 (95-77.5)/35 = 0.5
+  assert.equal(canvasOf(30, 31), 39);    // 合計 61：下降段 (95-61)/35 ≈ 0.9714 → 38.86 → 39
+});
+
+test('aerosol 斜率兩點（AOD 0.5→5、0.035→9）', () => {
+  const aerosolOf = aod => scoreEvent({ ...IDEAL, aod }).factors.find(f => f.key === 'aerosol').score;
+  assert.equal(aerosolOf(0.5), 5);     // (0.7-0.5)/0.4 = 0.5
+  assert.equal(aerosolOf(0.035), 9);   // 0.8 + 0.2*(0.015/0.03) = 0.9
+});
+
+test('clarity 中點（濕度 50、能見度 12.5km → 8 分）', () => {
+  const r = scoreEvent({ ...IDEAL, humidity: 50, visibility: 12500 });
+  // 濕度項 clamp 到 1，能見度項 (12500-5000)/15000 = 0.5，取較差者 → 15*0.5 = 7.5 → 8
+  assert.equal(r.factors.find(f => f.key === 'clarity').score, 8);
+});
+
+test('非平凡輸入下每個因子分數仍是整數', () => {
+  const cases = [
+    { ...IDEAL, cloudMid: 5, cloudHigh: 7.5 },
+    { ...IDEAL, cloudMid: 30, cloudHigh: 31 },
+    { ...IDEAL, aod: 0.035 },
+    { ...IDEAL, humidity: 50, visibility: 12500 },
+    { ...IDEAL, cloudLow: 35, precipProb: 33 },
+  ];
+  for (const input of cases) {
+    const r = scoreEvent(input);
+    for (const f of r.factors) {
+      assert.ok(Number.isInteger(f.score), `${f.key} 分數非整數：${f.score}`);
+    }
+    assert.ok(Number.isInteger(r.score), `總分非整數：${r.score}`);
   }
 });
