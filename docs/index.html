@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>台北火燒雲預報</title>
+<style>
+  :root {
+    --lv0: #55607a; --lv1: #8899bb; --lv2: #ff9f43; --lv3: #ff5e3a;
+    --card: rgba(255,255,255,.06); --line: rgba(255,255,255,.12); --dim: #9aa3c0;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: "Noto Sans TC", system-ui, sans-serif; color: #eef1fa; min-height: 100vh;
+    background: linear-gradient(175deg, #0b1026 0%, #1a1440 45%, #3d1f47 75%, #6b2d3e 100%);
+    background-attachment: fixed; padding: 20px 16px 40px;
+  }
+  main { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+  h1 { font-size: 1.35rem; letter-spacing: .12em; text-align: center; padding: 8px 0 2px; }
+  .sub { text-align: center; color: var(--dim); font-size: .8rem; margin-bottom: 6px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; backdrop-filter: blur(6px); }
+  .stale { background: #7a2e2e; border-color: #a54; text-align: center; font-size: .9rem; padding: 10px; border-radius: 12px; }
+  .main-card { text-align: center; padding: 26px 18px; }
+  .kind { font-size: 1rem; color: var(--dim); letter-spacing: .3em; }
+  .score { font-size: 4.2rem; font-weight: 800; line-height: 1.15; }
+  .level { display: inline-block; padding: 3px 14px; border-radius: 999px; font-size: .95rem; font-weight: 700; color: #101425; }
+  .when { margin-top: 10px; color: var(--dim); font-size: .9rem; }
+  .second { display: flex; justify-content: space-between; align-items: center; }
+  .second .score { font-size: 2rem; }
+  h2 { font-size: .95rem; color: var(--dim); letter-spacing: .2em; margin-bottom: 10px; }
+  .factor { margin-bottom: 12px; }
+  .factor:last-child { margin-bottom: 0; }
+  .frow { display: flex; justify-content: space-between; font-size: .88rem; margin-bottom: 4px; }
+  .frow b { font-weight: 600; }
+  .fscore { color: var(--dim); }
+  .bar { height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff9f43, #ff5e3a); }
+  .freason { font-size: .78rem; color: var(--dim); margin-top: 3px; }
+  .fvalue { font-size: .78rem; color: #c7cde4; }
+  .outlook { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .day { text-align: center; background: rgba(255,255,255,.04); border-radius: 12px; padding: 10px 6px; font-size: .82rem; }
+  .day .d { color: var(--dim); margin-bottom: 6px; }
+  .day .s { font-weight: 700; font-size: 1.05rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 500; }
+  footer { text-align: center; color: var(--dim); font-size: .75rem; line-height: 1.9; margin-top: 8px; }
+  footer a { color: #aab6e0; }
+  details { text-align: left; margin-top: 8px; }
+  summary { cursor: pointer; text-align: center; }
+  #error { display: none; text-align: center; padding: 30px 16px; }
+  button { background: var(--card); color: inherit; border: 1px solid var(--line); border-radius: 10px; padding: 8px 22px; font-size: .95rem; cursor: pointer; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>台北火燒雲預報</h1>
+  <div class="sub">每日 15:00・23:30 自動更新｜台北市</div>
+  <div id="stale" class="stale" hidden></div>
+  <div id="error" class="card"></div>
+  <div id="app" hidden>
+    <div style="display:grid;gap:14px">
+      <section id="main-card" class="card main-card"></section>
+      <section id="second-card" class="card second"></section>
+      <section class="card"><h2>因子拆解（主要事件）</h2><div id="factors"></div></section>
+      <section class="card"><h2>未來趨勢</h2><div id="outlook" class="outlook"></div></section>
+      <section class="card"><h2>歷史紀錄</h2><table>
+        <thead><tr><th>執行時間</th><th>觸發</th><th>日出</th><th>日落</th></tr></thead>
+        <tbody id="history"></tbody></table></section>
+    </div>
+  </div>
+  <footer>
+    <span id="gen"></span><br>
+    氣象資料：<a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>（天氣＋空氣品質）｜僅供參考，天空不保證照劇本走
+    <details><summary>演算法說明</summary>
+      總分 100 =中高雲畫布 40 +低雲阻擋 25 +空氣通透度 15 +氣溶膠 10 +降雨干擾 10。
+      火燒雲需要中高雲當畫布（約 25–60% 最佳）、低空無遮擋讓夕陽光斜射進來、乾燥通透的空氣讓顏色飽和。
+      分數於每日 15:00（今晚日落）與 23:30（明早日出）依 Open-Meteo 預報重算。
+    </details>
+  </footer>
+</main>
+<script>
+const LV = s => s >= 75 ? ['大燒預警','var(--lv3)'] : s >= 50 ? ['值得一看','var(--lv2)'] : s >= 25 ? ['普通','var(--lv1)'] : ['別期待','var(--lv0)'];
+const KIND = { sunrise: '日出', sunset: '日落' };
+// 一律以台北時間顯示，讓國外或非 +08:00 時區的訪客看到的時間與頁面標示一致
+const TPE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+});
+const tpeParts = iso => Object.fromEntries(TPE.formatToParts(new Date(iso)).map(p => [p.type, p.value]));
+const fmtTime = iso => { const p = tpeParts(iso); return `${p.hour}:${p.minute}`; };
+const fmtDate = iso => { const p = tpeParts(iso); return `${+p.month}/${+p.day}`; };
+
+function countdown(iso) {
+  const ms = new Date(iso) - Date.now();
+  if (ms <= 0) return '進行中／已結束';
+  const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
+  return h > 0 ? `還有 ${h} 小時 ${m} 分` : `還有 ${m} 分`;
+}
+
+function render(data, history) {
+  const pair = [['sunrise', data.next.sunrise], ['sunset', data.next.sunset]]
+    .sort((a, b) => new Date(a[1].eventTime) - new Date(b[1].eventTime));
+  const [mainKind, main] = pair[0], [secKind, sec] = pair[1];
+
+  const [lvl, color] = LV(main.score);
+  document.getElementById('main-card').innerHTML =
+    `<div class="kind">下一場・${KIND[mainKind]}</div>
+     <div class="score" style="color:${color}">${main.score}</div>
+     <span class="level" style="background:${color}">${lvl}</span>
+     <div class="when">${fmtDate(main.eventTime)} ${fmtTime(main.eventTime)} ${KIND[mainKind]}・${countdown(main.eventTime)}</div>`;
+
+  const [slvl, scolor] = LV(sec.score);
+  document.getElementById('second-card').innerHTML =
+    `<div><div class="kind">再下一場・${KIND[secKind]}</div>
+     <div class="when">${fmtDate(sec.eventTime)} ${fmtTime(sec.eventTime)}</div></div>
+     <div style="text-align:right"><div class="score" style="color:${scolor}">${sec.score}</div>
+     <span class="level" style="background:${scolor}">${slvl}</span></div>`;
+
+  document.getElementById('factors').innerHTML = main.factors.map(f =>
+    `<div class="factor">
+       <div class="frow"><b>${f.name}</b><span class="fscore">${f.score} / ${f.max}</span></div>
+       <div class="bar"><i style="width:${f.max ? f.score / f.max * 100 : 0}%"></i></div>
+       <div class="freason">${f.reason}<span class="fvalue">（${f.value}）</span></div>
+     </div>`).join('');
+
+  document.getElementById('outlook').innerHTML = data.outlook.map(d =>
+    `<div class="day"><div class="d">${fmtDate(d.date + 'T00:00:00+08:00')}</div>
+      <div>日出 <span class="s" style="color:${LV(d.sunrise.score)[1]}">${d.sunrise.score}</span></div>
+      <div>日落 <span class="s" style="color:${LV(d.sunset.score)[1]}">${d.sunset.score}</span></div></div>`).join('');
+
+  document.getElementById('history').innerHTML = history.slice(-14).reverse().map(h =>
+    `<tr><td>${fmtDate(h.ranAt)} ${fmtTime(h.ranAt)}</td>
+      <td>${h.trigger === 'sunset-run' ? '日落場' : h.trigger === 'sunrise-run' ? '日出場' : '手動'}</td>
+      <td style="color:${LV(h.sunriseScore)[1]}">${h.sunriseScore}</td>
+      <td style="color:${LV(h.sunsetScore)[1]}">${h.sunsetScore}</td></tr>`).join('');
+
+  document.getElementById('gen').textContent =
+    `資料更新於 ${fmtDate(data.generatedAt)} ${fmtTime(data.generatedAt)}（台北時間）`;
+  const hours = (Date.now() - new Date(data.generatedAt)) / 3600000;
+  const stale = document.getElementById('stale');
+  if (hours > 12) { stale.hidden = false; stale.textContent = `⚠ 資料已 ${Math.floor(hours)} 小時未更新，可能排程失敗，分數僅供參考`; }
+  else { stale.hidden = true; }
+  document.getElementById('app').hidden = false;
+}
+
+async function load() {
+  document.getElementById('error').style.display = 'none';
+  try {
+    const bust = `?t=${Date.now()}`;
+    const [data, history] = await Promise.all([
+      fetch('data.json' + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch('history.json' + bust).then(r => r.ok ? r.json() : []),
+    ]);
+    render(data, history);
+  } catch (err) {
+    const el = document.getElementById('error');
+    el.style.display = 'block';
+    el.innerHTML = `<p>資料載入失敗（${err.message}）</p><button onclick="load()">重試</button>`;
+  }
+}
+load();
+setInterval(load, 15 * 60 * 1000); // 開著頁面時每 15 分鐘自動重載資料
+</script>
+</body>
+</html>
