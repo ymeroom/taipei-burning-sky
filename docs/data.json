@@ -1,0 +1,135 @@
+{
+  "generatedAt": "2026-08-05T16:01:34.997Z",
+  "trigger": "manual",
+  "next": {
+    "sunrise": {
+      "eventTime": "2026-08-06T05:23:00+08:00",
+      "score": 44,
+      "level": "普通",
+      "factors": [
+        {
+          "key": "canvas",
+          "name": "中高雲畫布",
+          "value": "中高雲合計 5%",
+          "score": 8,
+          "max": 40,
+          "reason": "中高雲偏少，就算燒起來範圍也有限"
+        },
+        {
+          "key": "lowCloud",
+          "name": "低雲阻擋",
+          "value": "低雲 22%",
+          "score": 17,
+          "max": 25,
+          "reason": "少量低雲，稍有遮擋"
+        },
+        {
+          "key": "clarity",
+          "name": "空氣通透度",
+          "value": "濕度 98%・能見度 4km",
+          "score": 0,
+          "max": 15,
+          "reason": "空氣又濕又濁，色彩會很淡"
+        },
+        {
+          "key": "aerosol",
+          "name": "氣溶膠",
+          "value": "AOD 0.21",
+          "score": 10,
+          "max": 10,
+          "reason": "氣溶膠適中，散射出漂亮橘紅"
+        },
+        {
+          "key": "rain",
+          "name": "降雨干擾",
+          "value": "降雨機率 6%",
+          "score": 9,
+          "max": 10,
+          "reason": "無降雨干擾"
+        }
+      ]
+    },
+    "sunset": {
+      "eventTime": "2026-08-06T18:35:00+08:00",
+      "score": 46,
+      "level": "普通",
+      "factors": [
+        {
+          "key": "canvas",
+          "name": "中高雲畫布",
+          "value": "中高雲合計 4%",
+          "score": 7,
+          "max": 40,
+          "reason": "中高雲偏少，就算燒起來範圍也有限"
+        },
+        {
+          "key": "lowCloud",
+          "name": "低雲阻擋",
+          "value": "低雲 16%",
+          "score": 19,
+          "max": 25,
+          "reason": "少量低雲，稍有遮擋"
+        },
+        {
+          "key": "clarity",
+          "name": "空氣通透度",
+          "value": "濕度 73%・能見度 18km",
+          "score": 9,
+          "max": 15,
+          "reason": "濕度或能見度普通，顏色打點折扣"
+        },
+        {
+          "key": "aerosol",
+          "name": "氣溶膠",
+          "value": "AOD 0.20",
+          "score": 10,
+          "max": 10,
+          "reason": "氣溶膠適中，散射出漂亮橘紅"
+        },
+        {
+          "key": "rain",
+          "name": "降雨干擾",
+          "value": "降雨機率 69%",
+          "score": 1,
+          "max": 10,
+          "reason": "降雨機率高，大概率泡湯"
+        }
+      ]
+    }
+  },
+  "outlook": [
+    {
+      "date": "2026-08-06",
+      "sunrise": {
+        "time": "2026-08-06T05:23:00+08:00",
+        "score": 44
+      },
+      "sunset": {
+        "time": "2026-08-06T18:35:00+08:00",
+        "score": 46
+      }
+    },
+    {
+      "date": "2026-08-07",
+      "sunrise": {
+        "time": "2026-08-07T05:24:00+08:00",
+        "score": 26
+      },
+      "sunset": {
+        "time": "2026-08-07T18:35:00+08:00",
+        "score": 52
+      }
+    },
+    {
+      "date": "2026-08-08",
+      "sunrise": {
+        "time": "2026-08-08T05:24:00+08:00",
+        "score": 9
+      },
+      "sunset": {
+        "time": "2026-08-08T18:34:00+08:00",
+        "score": 10
+      }
+    }
+  ]
+}
