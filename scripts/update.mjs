@@ -108,6 +108,23 @@ export function buildData(forecast, air, trigger, now) {
   };
 }
 
+// 只有「檔案不存在」算首次執行；壞檔、權限錯誤等一律往外拋，
+// 否則一次 JSON.parse 失敗就會讓整份歷史被一筆新資料靜默覆蓋掉。
+export async function readHistory(path = HISTORY_PATH) {
+  let raw;
+  try {
+    raw = await readFile(path, 'utf8');
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    throw err;
+  }
+  const history = JSON.parse(raw);
+  if (!Array.isArray(history)) {
+    throw new Error(`readHistory: ${path} 內容不是陣列，拒絕覆寫既有歷史`);
+  }
+  return history;
+}
+
 async function main() {
   const trigger = process.argv[2] || 'manual';
   const [forecast, air] = await Promise.all([
@@ -115,10 +132,10 @@ async function main() {
     fetchJsonWithRetry(AIR_URL),
   ]);
   const data = buildData(forecast, air, trigger, Date.now());
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n');
+  // 先把歷史讀進來再落筆：任何一份資料有問題，就兩份都不寫。
+  const history = await readHistory();
 
-  let history = [];
-  try { history = JSON.parse(await readFile(HISTORY_PATH, 'utf8')); } catch { /* 首次執行 */ }
+  await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n');
   history.push({
     ranAt: data.generatedAt,
     trigger,
@@ -132,5 +149,5 @@ async function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(err => { console.error(err); process.exit(1); });
+  main().catch(err => { console.error(err); process.exitCode = 1; });
 }

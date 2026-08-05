@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchJsonWithRetry, conditionsAt, buildData } from './update.mjs';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fetchJsonWithRetry, conditionsAt, buildData, readHistory } from './update.mjs';
 
 const ok = data => ({ ok: true, json: async () => data });
 const fail = status => ({ ok: false, status });
@@ -127,3 +130,44 @@ test('buildData 組出下一場日出日落與 3 天趨勢', () => {
   assert.equal(data.outlook[0].sunset.time, `2026-08-06T${SUNSET}:00+08:00`);
   assert.ok(Number.isInteger(data.outlook[0].sunset.score));
 });
+
+// ---- history.json 讀取：只容忍「檔案不存在」，其餘一律大聲失敗 ----
+
+// 在暫存目錄裡跑，避免碰到 repo 內真正的 docs/history.json
+async function withTempFile(contents, fn) {
+  const dir = await mkdtemp(join(tmpdir(), 'burning-sky-'));
+  const path = join(dir, 'history.json');
+  try {
+    if (contents !== null) await writeFile(path, contents);
+    return await fn(path);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+test('readHistory 檔案不存在時視為首次執行，回傳空陣列', async () => {
+  await withTempFile(null, async path => {
+    assert.deepEqual(await readHistory(path), []);
+  });
+});
+
+test('readHistory 讀到既有紀錄時原樣回傳', async () => {
+  const existing = [{ ranAt: '2026-08-05T16:01:34.997Z', trigger: 'manual', sunriseScore: 44 }];
+  await withTempFile(JSON.stringify(existing), async path => {
+    assert.deepEqual(await readHistory(path), existing);
+  });
+});
+
+test('readHistory 遇到壞掉的 JSON 時拋錯，不靜默清空歷史', async () => {
+  await withTempFile('[{"ranAt": "2026-08', async path => {
+    await assert.rejects(() => readHistory(path), err =>
+      err instanceof Error && !(err.code === 'ENOENT'));
+  });
+});
+
+test('readHistory 讀到非陣列的 JSON 時拋錯', async () => {
+  await withTempFile('{"ranAt":"2026-08-05T16:01:34.997Z"}', async path => {
+    await assert.rejects(() => readHistory(path), /readHistory: /);
+  });
+});
+
