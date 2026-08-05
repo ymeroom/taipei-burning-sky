@@ -45,7 +45,7 @@ GitHub Actions cron 以 UTC 表示：
 | `0 7 * * *` | 15:00 | 今天日落預測 |
 | `30 15 * * *` | 23:30 | 明天日出預測 |
 
-另提供 `workflow_dispatch` 手動觸發。已知限制：GitHub Actions cron 可能延遲 3–15 分鐘，屬可接受範圍。Workflow 需 `contents: write` 權限以 commit 結果；連續兩次資料相同時（罕見）以 `git diff --quiet` 判斷跳過空 commit。
+另提供 `workflow_dispatch` 手動觸發。已知限制：GitHub Actions cron 可能延遲 3–15 分鐘，屬可接受範圍。Workflow 需 `contents: write` 權限以 commit 結果；連續兩次資料相同時（罕見）以 `git diff --cached --quiet` 判斷跳過空 commit（`git add` 之後須看暫存區，不帶 `--cached` 會永遠 quiet）。
 
 ## 評分演算法（0–100 分）
 
@@ -109,7 +109,7 @@ GitHub Actions cron 以 UTC 表示：
 ## 測試
 
 - `score.mjs` 為純函式（氣象數值入 → 分數與拆解出），以 `node --test` 覆蓋：無雲、全陰、低雲滿天、理想火燒雲情境、極端 AOD、降雨、插值邊界（事件時刻恰為整點）。
-- CI：workflow 內於算分前先跑 `node --test scripts/`，測試失敗即中止不更新資料。
+- CI：workflow 內於算分前先跑 `node --test`，測試失敗即中止不更新資料。
 - 端對端：部署後以 `workflow_dispatch` 手動觸發一次驗證全流程。
 
 ## 部署步驟（一次性）
