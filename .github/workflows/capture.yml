@@ -14,6 +14,10 @@ on:
         type: choice
         options: [sunset, sunrise]
         default: sunset
+      dryRun:
+        description: 只驗證抓幀工具鏈（不等事件時刻、不寫入資料）
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -47,6 +51,7 @@ jobs:
         run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
 
       - name: 等到事件時刻後 8 分鐘
+        if: ${{ inputs.dryRun != true }}
         run: |
           KIND='${{ steps.kind.outputs.value }}'
           EVENT=$(node -e "const d=require('./docs/data.json');console.log(d.next['$KIND'].eventTime)")
@@ -75,9 +80,21 @@ jobs:
           echo "抓到 320×${HEIGHT} 影格"
 
       - name: 計算 camBurnIndex
+        if: ${{ inputs.dryRun != true }}
         run: node scripts/capture.mjs '${{ steps.kind.outputs.value }}' frame.raw 320 "$FRAME_HEIGHT"
 
+      - name: dry-run：只印指標不寫檔
+        if: ${{ inputs.dryRun == true }}
+        run: |
+          node --input-type=module -e "
+            import { readFile } from 'node:fs/promises';
+            const { camMetrics } = await import('./scripts/capture.mjs');
+            const buf = await readFile('frame.raw');
+            console.log('工具鏈驗證通過：', JSON.stringify(camMetrics(buf, 320, Number(process.env.FRAME_HEIGHT))));
+          "
+
       - name: Commit 驗證資料
+        if: ${{ inputs.dryRun != true }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
