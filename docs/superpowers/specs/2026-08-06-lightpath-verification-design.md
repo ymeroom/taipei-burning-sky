@@ -79,6 +79,17 @@ CLI：`node scripts/verify.mjs sunset|sunrise`。流程：
 
 歷史表加「實況」欄：以 date+kind 比對 `verification.json`——🔥（burnIndex ≥50）｜「淡燒」（25–49）｜「—」（<25）｜空白（未驗證/無資料）。`verification.json` 載入失敗時整欄顯示空白，不影響其他區塊。頁尾演算法說明補一句驗證機制。
 
+### C. 地面攝影機雙訊號（使用者指定新增）
+
+衛星之外，加**事件時刻**的地面直播幀判定（更貼近肉眼觀感）：
+
+- 日落：象山看台北 4K（YouTube `z_fY1pj1VBw`，台北觀光官方）；日出：烘爐地即時影像（`xxMRjVwCQ3o`，新北觀光官方）。
+- 新 workflow `capture.yml`：cron `5 9 * * *`（台北 17:05，日落場，timeout 150 分）與 `30 20 * * *`（台北 04:30，日出場，timeout 160 分）。步驟：讀 `docs/data.json` 取事件時刻 → sleep 至事件 +8 分（已過 20 分以上則跳過離開）→ `pip install yt-dlp` + `yt-dlp -g` 取 HLS → `ffmpeg` 抓一幀縮到 320px 輸出 raw RGB → `node scripts/capture.mjs <kind>` 讀 raw bytes 對天空區域（上 45%）算 `camBurnIndex = round(100×min(1, camWarmRatio×2.5))`（暖像素：R>B+25 且 R>80）。
+- `verification.json` 改為以 (date, kind) **upsert 合併**：capture 寫入 `camBurnIndex`/`camWarmRatio`，verify 寫入衛星欄位，兩班互不覆蓋對方欄位；concurrency 共用 group 序列化 push。
+- 前端「實況」欄優先顯示 camBurnIndex，無則衛星 burnIndex。
+- 直播斷線/yt-dlp 失敗：capture 以非零碼結束（Actions 標紅），衛星訊號不受影響。
+- calibrate 的標籤改用 `camBurnIndex ?? burnIndex`。
+
 ## 錯誤處理總則
 
 沿用初版：重試 3 次、任一環節失敗即非零碼結束且不寫檔、Actions 標紅寄信、舊資料不被半套覆蓋。verify 與 update 各自獨立失敗互不影響。
@@ -94,6 +105,6 @@ CLI：`node scripts/verify.mjs sunset|sunrise`。流程：
 ## 非目標（YAGNI）
 
 - 不做自動改權重（calibrate 只出報告）。
-- 不做地面攝影機/人工回報。
+- 不做人工回報。
 - 不做 burnIndex 的歷史回填（從上線日開始累積）。
 - 不做預測 vs 實況的統計圖表（資料夠了再說）。
