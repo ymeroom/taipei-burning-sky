@@ -1,0 +1,87 @@
+name: 攝影機實況驗證
+
+# 在事件時刻抓一幀地面直播畫面，量天空暖色比例，寫進 docs/verification.json。
+# 為什麼要等：GitHub cron 精度差且日出日落逐日移動，因此提早開工、讀 data.json 的實際事件時刻再睡到定點。
+# 公開 repo 的 Actions 分鐘數不計費，等待成本為零。
+on:
+  schedule:
+    - cron: '45 8 * * *'   # 台北 16:45，早於全年最早日落（冬至 17:05）
+    - cron: '50 20 * * *'  # 台北 04:50，早於全年最早日出（夏至 05:05）
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 要驗證的場次
+        type: choice
+        options: [sunset, sunrise]
+        default: sunset
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-forecast   # 與預報排程共用，避免同時 push 撞車
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 決定場次
+        id: kind
+        run: |
+          if [ -n "${{ inputs.kind }}" ]; then
+            echo "value=${{ inputs.kind }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "50 20 * * *" ]; then
+            echo "value=sunrise" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=sunset" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 單元測試
+        run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
+
+      - name: 等到事件時刻後 8 分鐘
+        run: |
+          KIND='${{ steps.kind.outputs.value }}'
+          EVENT=$(node -e "const d=require('./docs/data.json');console.log(d.next['$KIND'].eventTime)")
+          TARGET=$(( $(date -u -d "$EVENT" +%s) + 8*60 ))
+          NOW=$(date -u +%s)
+          WAIT=$(( TARGET - NOW ))
+          echo "場次 $KIND 事件 $EVENT，目標抓幀時刻 +8 分，需等待 ${WAIT}s"
+          if [ "$WAIT" -lt -1200 ]; then
+            echo "已錯過抓幀窗口 20 分鐘以上，放棄本次" >&2
+            exit 1
+          fi
+          [ "$WAIT" -gt 0 ] && sleep "$WAIT"
+          echo "TARGET_OK=1" >> "$GITHUB_ENV"
+
+      - name: 安裝 yt-dlp
+        run: pipx install yt-dlp
+
+      - name: 抓一幀畫面
+        run: |
+          KIND='${{ steps.kind.outputs.value }}'
+          VIDEO=$(node -e "const {CAMERAS}=await import('./scripts/capture.mjs');console.log(CAMERAS['$KIND'].id)" --input-type=module)
+          STREAM=$(yt-dlp -g -f 'best[height<=720]' "https://www.youtube.com/watch?v=$VIDEO" | tail -1)
+          ffmpeg -loglevel error -y -i "$STREAM" -vframes 1 -vf scale=320:-1 -f rawvideo -pix_fmt rgb24 frame.raw
+          HEIGHT=$(( $(stat -c%s frame.raw) / 320 / 3 ))
+          echo "FRAME_HEIGHT=$HEIGHT" >> "$GITHUB_ENV"
+          echo "抓到 320×${HEIGHT} 影格"
+
+      - name: 計算 camBurnIndex
+        run: node scripts/capture.mjs '${{ steps.kind.outputs.value }}' frame.raw 320 "$FRAME_HEIGHT"
+
+      - name: Commit 驗證資料
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/verification.json
+          git diff --cached --quiet || git commit -m "chore: 更新實況驗證資料"
+          git pull --rebase --autostash
+          git push
