@@ -114,6 +114,12 @@ test('clarity 中點（濕度 50、能見度 12.5km → 8 分）', () => {
   assert.equal(r.factors.find(f => f.key === 'clarity').score, 8);
 });
 
+test('clarity 濕度側斜率（濕度 77.5、能見度 25km → 8 分）', () => {
+  const r = scoreEvent({ ...IDEAL, humidity: 77.5, visibility: 25000 });
+  // 能見度項 clamp 到 1，濕度項 (95-77.5)/35 = 0.5，取較差者 → 15*0.5 = 7.5 → 8
+  assert.equal(r.factors.find(f => f.key === 'clarity').score, 8);
+});
+
 test('interpolate 線性內插', () => {
   const times = [0, 3600_000, 7200_000];
   assert.equal(interpolate(times, [0, 100, 50], 1800_000), 50);
@@ -124,6 +130,11 @@ test('interpolate 線性內插', () => {
 
 test('interpolate 恰為整點取原值', () => {
   assert.equal(interpolate([0, 3600_000], [10, 20], 3600_000), 20);
+});
+
+test('interpolate 恰為內部整點取原值（不走 clamp 分支）', () => {
+  // target 落在序列中間的時間戳上，走的是內插公式而非上界 clamp
+  assert.equal(interpolate([0, 3600_000, 7200_000], [10, 20, 30], 3600_000), 20);
 });
 
 test('interpolate 超出範圍 clamp 到端點', () => {
