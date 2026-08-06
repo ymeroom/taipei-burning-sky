@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "date": "2026-08-06",
+    "kind": "sunset",
+    "eventTime": "2026-08-06T18:35:00+08:00",
+    "predictedScore": 49,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "camera": "象山看台北",
+    "capturedAt": "2026-08-06T07:33:17.425Z"
+  }
+]

@@ -1,12 +1,15 @@
 name: 攝影機實況驗證
 
 # 在事件時刻抓一幀地面直播畫面，量天空暖色比例，寫進 docs/verification.json。
-# 為什麼要等：GitHub cron 精度差且日出日落逐日移動，因此提早開工、讀 data.json 的實際事件時刻再睡到定點。
-# 公開 repo 的 Actions 分鐘數不計費，等待成本為零。
+#
+# ⚠ 排程已停用（2026-08-06）：YouTube 會擋 GitHub Actions 的機房 IP，
+# yt-dlp 在 runner 上回 "Sign in to confirm you're not a bot"（實測 run 31080972665）。
+# 同一條管線在家用網路上完全正常，因此改用 scripts/capture-local.sh 在本機跑。
+# 若日後改用不需登入的公開影像來源（或掛 cookies secret），把下面的 schedule 解除註解即可。
 on:
-  schedule:
-    - cron: '45 8 * * *'   # 台北 16:45，早於全年最早日落（冬至 17:05）
-    - cron: '50 20 * * *'  # 台北 04:50，早於全年最早日出（夏至 05:05）
+  # schedule:
+  #   - cron: '45 8 * * *'   # 台北 16:45，早於全年最早日落（冬至 17:05）
+  #   - cron: '50 20 * * *'  # 台北 04:50，早於全年最早日出（夏至 05:05）
   workflow_dispatch:
     inputs:
       kind:
