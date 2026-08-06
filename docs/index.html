@@ -65,7 +65,7 @@
       <section class="card"><h2>因子拆解（主要事件）</h2><div id="factors"></div></section>
       <section class="card"><h2>未來趨勢</h2><div id="outlook" class="outlook"></div></section>
       <section class="card"><h2>歷史紀錄</h2><table>
-        <thead><tr><th>執行時間</th><th>觸發</th><th>日出</th><th>日落</th></tr></thead>
+        <thead><tr><th>執行時間</th><th>觸發</th><th>日出</th><th>日落</th><th>實況</th></tr></thead>
         <tbody id="history"></tbody></table></section>
     </div>
   </div>
@@ -76,6 +76,10 @@
       總分 100 =中高雲畫布 40 +低雲阻擋 25 +空氣通透度 15 +氣溶膠 10 +降雨干擾 10。
       火燒雲需要中高雲當畫布（約 25–60% 最佳）、低空無遮擋讓夕陽光斜射進來、乾燥通透的空氣讓顏色飽和。
       分數於每日 15:00（今晚日落）與 23:30（明早日出）依 Open-Meteo 預報重算。
+      低雲阻擋不只看市區：會沿事件時刻的太陽方位角往外取 40／90／150／220／300 公里五個點，
+      按距離加權——夕陽的光要穿過幾百公里低空才到得了台北，光路上有低雲就照不進來。
+      「實況」欄是事後對答案：在事件時刻抓一幀地面直播畫面（日落＝象山、日出＝烘爐地），
+      量天空的暖色比例。累積足夠天數後就能回頭校準各因子權重。
     </details>
   </footer>
 </main>
@@ -108,7 +112,7 @@ function nextPair(next, now = Date.now()) {
   return future.length ? [...future, ...past] : byTime;
 }
 
-function render(data, history) {
+function render(data, history, verifications = []) {
   const pair = nextPair(data.next);
   const [mainKind, main] = pair[0], [secKind, sec] = pair[1];
 
@@ -126,11 +130,15 @@ function render(data, history) {
      <div style="text-align:right"><div class="score" style="color:${scolor}">${sec.score}</div>
      <span class="level" style="background:${scolor}">${slvl}</span></div>`;
 
+  const lp = main.lightPath;
   document.getElementById('factors').innerHTML = main.factors.map(f =>
     `<div class="factor">
        <div class="frow"><b>${f.name}</b><span class="fscore">${f.score} / ${f.max}</span></div>
        <div class="bar"><i style="width:${f.max ? f.score / f.max * 100 : 0}%"></i></div>
        <div class="freason">${f.reason}<span class="fvalue">（${f.value}）</span></div>
+       ${f.key === 'lowCloud' && lp
+         ? `<div class="freason">光路 (${lp.azimuth}°) 低雲 ${lp.pathLow}%・市區 ${lp.centerLow}%<span class="fvalue">（沿陽光來向 ${lp.points.map(p => `${p.km}km ${p.low}%`).join('、')}）</span></div>`
+         : ''}
      </div>`).join('');
 
   document.getElementById('outlook').innerHTML = data.outlook.map(d =>
@@ -138,11 +146,19 @@ function render(data, history) {
       <div>日出 <span class="s" style="color:${LV(d.sunrise.score)[1]}">${d.sunrise.score}</span></div>
       <div>日落 <span class="s" style="color:${LV(d.sunset.score)[1]}">${d.sunset.score}</span></div></div>`).join('');
 
+  // 實況：攝影機在事件時刻量到的天空暖色比例（camBurnIndex），以 date+kind 對回預測
+  const actualFor = (eventTime, kind) => {
+    const rec = verifications.find(v => v.date === eventTime.slice(0, 10) && v.kind === kind);
+    if (!rec || !Number.isFinite(rec.camBurnIndex)) return '';
+    return rec.camBurnIndex >= 50 ? '🔥' : rec.camBurnIndex >= 25 ? '淡燒' : '—';
+  };
   document.getElementById('history').innerHTML = history.slice(-14).reverse().map(h =>
     `<tr><td>${fmtDate(h.ranAt)} ${fmtTime(h.ranAt)}</td>
       <td>${h.trigger === 'sunset-run' ? '日落場' : h.trigger === 'sunrise-run' ? '日出場' : '手動'}</td>
       <td style="color:${LV(h.sunriseScore)[1]}">${h.sunriseScore}</td>
-      <td style="color:${LV(h.sunsetScore)[1]}">${h.sunsetScore}</td></tr>`).join('');
+      <td style="color:${LV(h.sunsetScore)[1]}">${h.sunsetScore}</td>
+      <td>${actualFor(h.sunriseTime, 'sunrise')}${actualFor(h.sunsetTime, 'sunset')
+        ? ` / ${actualFor(h.sunsetTime, 'sunset')}` : ''}</td></tr>`).join('');
 
   document.getElementById('gen').textContent =
     `資料更新於 ${fmtDate(data.generatedAt)} ${fmtTime(data.generatedAt)}（台北時間）`;
@@ -157,11 +173,12 @@ async function load() {
   document.getElementById('error').style.display = 'none';
   try {
     const bust = `?t=${Date.now()}`;
-    const [data, history] = await Promise.all([
+    const [data, history, verifications] = await Promise.all([
       fetch('data.json' + bust).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       fetch('history.json' + bust).then(r => r.ok ? r.json() : []),
+      fetch('verification.json' + bust).then(r => r.ok ? r.json() : []).catch(() => []),
     ]);
-    render(data, history);
+    render(data, history, verifications);
   } catch (err) {
     const el = document.getElementById('error');
     el.style.display = 'block';
