@@ -1,32 +1,32 @@
 {
-  "generatedAt": "2026-08-05T16:09:52.866Z",
+  "generatedAt": "2026-08-06T02:42:35.907Z",
   "trigger": "manual",
   "next": {
     "sunrise": {
-      "eventTime": "2026-08-06T05:23:00+08:00",
-      "score": 44,
-      "level": "普通",
+      "eventTime": "2026-08-07T05:24:00+08:00",
+      "score": 10,
+      "level": "別期待",
       "factors": [
         {
           "key": "canvas",
           "name": "中高雲畫布",
-          "value": "中高雲合計 5%",
-          "score": 8,
+          "value": "中高雲合計 100%",
+          "score": 0,
           "max": 40,
-          "reason": "中高雲偏少，就算燒起來範圍也有限"
+          "reason": "天空整片糊住，光透不進來"
         },
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 22%",
-          "score": 17,
+          "value": "低雲 70%",
+          "score": 0,
           "max": 25,
-          "reason": "少量低雲，稍有遮擋"
+          "reason": "低雲偏多，地平線光線容易被擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 98%・能見度 4km",
+          "value": "濕度 99%・能見度 4km",
           "score": 0,
           "max": 15,
           "reason": "空氣又濕又濁，色彩會很淡"
@@ -34,7 +34,7 @@
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.21",
+          "value": "AOD 0.25",
           "score": 10,
           "max": 10,
           "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -42,46 +42,46 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 6%",
-          "score": 9,
+          "value": "降雨機率 94%",
+          "score": 0,
           "max": 10,
-          "reason": "無降雨干擾"
+          "reason": "降雨機率高，大概率泡湯"
         }
       ]
     },
     "sunset": {
       "eventTime": "2026-08-06T18:35:00+08:00",
-      "score": 46,
+      "score": 48,
       "level": "普通",
       "factors": [
         {
           "key": "canvas",
           "name": "中高雲畫布",
-          "value": "中高雲合計 4%",
-          "score": 7,
+          "value": "中高雲合計 3%",
+          "score": 5,
           "max": 40,
           "reason": "中高雲偏少，就算燒起來範圍也有限"
         },
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 16%",
-          "score": 19,
+          "value": "低雲 13%",
+          "score": 20,
           "max": 25,
           "reason": "少量低雲，稍有遮擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 73%・能見度 18km",
-          "score": 9,
+          "value": "濕度 73%・能見度 17km",
+          "score": 10,
           "max": 15,
           "reason": "濕度或能見度普通，顏色打點折扣"
         },
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.20",
+          "value": "AOD 0.24",
           "score": 10,
           "max": 10,
           "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -89,8 +89,8 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 69%",
-          "score": 1,
+          "value": "降雨機率 58%",
+          "score": 3,
           "max": 10,
           "reason": "降雨機率高，大概率泡湯"
         }
@@ -99,36 +99,36 @@
   },
   "outlook": [
     {
-      "date": "2026-08-06",
-      "sunrise": {
-        "time": "2026-08-06T05:23:00+08:00",
-        "score": 44
-      },
-      "sunset": {
-        "time": "2026-08-06T18:35:00+08:00",
-        "score": 46
-      }
-    },
-    {
       "date": "2026-08-07",
       "sunrise": {
         "time": "2026-08-07T05:24:00+08:00",
-        "score": 26
+        "score": 10
       },
       "sunset": {
         "time": "2026-08-07T18:35:00+08:00",
-        "score": 52
+        "score": 48
       }
     },
     {
       "date": "2026-08-08",
       "sunrise": {
         "time": "2026-08-08T05:24:00+08:00",
-        "score": 9
+        "score": 8
       },
       "sunset": {
         "time": "2026-08-08T18:34:00+08:00",
         "score": 10
+      }
+    },
+    {
+      "date": "2026-08-09",
+      "sunrise": {
+        "time": "2026-08-09T05:25:00+08:00",
+        "score": 29
+      },
+      "sunset": {
+        "time": "2026-08-09T18:33:00+08:00",
+        "score": 37
       }
     }
   ]

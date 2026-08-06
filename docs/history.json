@@ -14,5 +14,13 @@
     "sunsetScore": 46,
     "sunriseTime": "2026-08-06T05:23:00+08:00",
     "sunsetTime": "2026-08-06T18:35:00+08:00"
+  },
+  {
+    "ranAt": "2026-08-06T02:42:35.907Z",
+    "trigger": "manual",
+    "sunriseScore": 10,
+    "sunsetScore": 48,
+    "sunriseTime": "2026-08-07T05:24:00+08:00",
+    "sunsetTime": "2026-08-06T18:35:00+08:00"
   }
 ]
