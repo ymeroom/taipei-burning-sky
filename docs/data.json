@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-06T07:25:03.494Z",
-  "trigger": "manual",
+  "generatedAt": "2026-08-06T09:36:58.883Z",
+  "trigger": "sunset-run",
   "next": {
     "sunrise": {
       "eventTime": "2026-08-07T05:24:00+08:00",

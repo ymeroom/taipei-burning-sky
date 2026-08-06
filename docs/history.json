@@ -66,5 +66,27 @@
       "aerosol": 10,
       "rain": 2
     }
+  },
+  {
+    "ranAt": "2026-08-06T09:36:58.883Z",
+    "trigger": "sunset-run",
+    "sunriseScore": 62,
+    "sunsetScore": 49,
+    "sunriseTime": "2026-08-07T05:24:00+08:00",
+    "sunsetTime": "2026-08-06T18:35:00+08:00",
+    "sunriseFactors": {
+      "canvas": 40,
+      "lowCloud": 12,
+      "clarity": 0,
+      "aerosol": 10,
+      "rain": 0
+    },
+    "sunsetFactors": {
+      "canvas": 4,
+      "lowCloud": 23,
+      "clarity": 10,
+      "aerosol": 10,
+      "rain": 2
+    }
   }
 ]
