@@ -16,13 +16,14 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: 單元測試
-        run: node --test
+        run: node --test scripts/score.test.mjs scripts/update.test.mjs
       - name: 計算預報
         run: node scripts/update.mjs "${{ github.event.schedule == '0 7 * * *' && 'sunset-run' || (github.event.schedule == '30 15 * * *' && 'sunrise-run' || 'manual') }}"
       - name: Commit 資料

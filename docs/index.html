@@ -98,9 +98,18 @@ function countdown(iso) {
   return h > 0 ? `還有 ${h} 小時 ${m} 分` : `還有 ${m} 分`;
 }
 
-function render(data, history) {
-  const pair = [['sunrise', data.next.sunrise], ['sunset', data.next.sunset]]
+// 依當下時間挑「下一場」：先取未來的事件（按時間排序），已過去的排到後面。
+// 兩場都過去（資料嚴重過期）時維持時間順序，交由 stale 警示處理。
+function nextPair(next, now = Date.now()) {
+  const byTime = [['sunrise', next.sunrise], ['sunset', next.sunset]]
     .sort((a, b) => new Date(a[1].eventTime) - new Date(b[1].eventTime));
+  const future = byTime.filter(([, e]) => new Date(e.eventTime) > now);
+  const past = byTime.filter(([, e]) => new Date(e.eventTime) <= now);
+  return future.length ? [...future, ...past] : byTime;
+}
+
+function render(data, history) {
+  const pair = nextPair(data.next);
   const [mainKind, main] = pair[0], [secKind, sec] = pair[1];
 
   const [lvl, color] = LV(main.score);

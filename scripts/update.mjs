@@ -148,6 +148,6 @@ async function main() {
   console.log(`OK trigger=${trigger} sunrise=${data.next.sunrise.score} sunset=${data.next.sunset.score}`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(err => { console.error(err); process.exitCode = 1; });
 }
