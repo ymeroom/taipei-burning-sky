@@ -22,5 +22,27 @@
     "sunsetScore": 48,
     "sunriseTime": "2026-08-07T05:24:00+08:00",
     "sunsetTime": "2026-08-06T18:35:00+08:00"
+  },
+  {
+    "ranAt": "2026-08-06T06:45:26.275Z",
+    "trigger": "manual",
+    "sunriseScore": 18,
+    "sunsetScore": 50,
+    "sunriseTime": "2026-08-07T05:24:00+08:00",
+    "sunsetTime": "2026-08-06T18:35:00+08:00",
+    "sunriseFactors": {
+      "canvas": 0,
+      "lowCloud": 8,
+      "clarity": 0,
+      "aerosol": 10,
+      "rain": 0
+    },
+    "sunsetFactors": {
+      "canvas": 5,
+      "lowCloud": 23,
+      "clarity": 10,
+      "aerosol": 10,
+      "rain": 2
+    }
   }
 ]

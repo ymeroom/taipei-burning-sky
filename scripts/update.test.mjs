@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fetchJsonWithRetry, conditionsAt, buildData, readHistory } from './update.mjs';
+import {
+  fetchJsonWithRetry, conditionsAt, buildData, readHistory,
+  PATH_DISTANCES, PATH_WEIGHTS, weightedPathLow, effectiveLow, buildPathPoints, parsePathBatch, factorScores,
+} from './update.mjs';
 
 const ok = data => ({ ok: true, json: async () => data });
 // 失敗回應也給 json()：若實作漏掉 res.ok 檢查而逕自解析 body，測試才會抓得到
@@ -76,6 +79,55 @@ const makeAir = (overrides = {}) => ({
 
 const epochOf = iso => new Date(`${iso}:00+08:00`).getTime();
 
+// 光路假資料：5 個取樣點、每點恆定低雲
+const makePathSamples = (low = 10) =>
+  Array.from({ length: 5 }, () => ({ hourly: { time: hourlyTimes(), cloud_cover_low: fill(low) } }));
+const makePaths = (low = 10) => ({
+  sunset: { azimuth: 288, samples: makePathSamples(low) },
+  sunrise: { azimuth: 72, samples: makePathSamples(low) },
+});
+
+// ---- 光路取樣 ----
+
+test('光路權重總和恰為 1.0', () => {
+  const sum = PATH_WEIGHTS.reduce((a, b) => a + b, 0);
+  assert.ok(Math.abs(sum - 1) < 1e-12, `權重和 ${sum}`);
+  assert.equal(PATH_WEIGHTS.length, PATH_DISTANCES.length);
+});
+
+test('weightedPathLow 加權數學：[10,20,30,40,50] → 25', () => {
+  assert.ok(Math.abs(weightedPathLow([10, 20, 30, 40, 50]) - 25) < 1e-9);
+});
+
+test('weightedPathLow 點數不符拋錯', () => {
+  assert.throws(() => weightedPathLow([10, 20, 30]), /weightedPathLow/);
+});
+
+test('effectiveLow(25, 13) = 0.6×25 + 0.4×13 = 20.2', () => {
+  assert.ok(Math.abs(effectiveLow(25, 13) - 20.2) < 1e-9);
+});
+
+test('buildPathPoints 八月日落：方位角在西北西、取樣點一路向西', () => {
+  const { azimuth, points } = buildPathPoints('2026-08-06T18:35');
+  assert.ok(azimuth > 280 && azimuth < 295, `八月日落方位角 ${azimuth.toFixed(1)}`);
+  assert.equal(points.length, 5);
+  assert.deepEqual(points.map(p => p.km), PATH_DISTANCES);
+  for (let i = 1; i < points.length; i++) {
+    assert.ok(points[i].lon < points[i - 1].lon, '經度應遞減（向西）');
+  }
+  assert.ok(points[4].lon < 119, `300km 點應進台灣海峽（lon=${points[4].lon.toFixed(2)}）`);
+});
+
+test('parsePathBatch 點數不符拋錯、相符原樣回傳', () => {
+  assert.throws(() => parsePathBatch([{}, {}, {}], 5), /parsePathBatch: 批次回應 3 點/);
+  assert.equal(parsePathBatch([1, 2, 3], 3).length, 3);
+});
+
+test('factorScores 把 factors 陣列轉成 key→score 物件', () => {
+  const factors = [{ key: 'canvas', score: 34 }, { key: 'rain', score: 10 }];
+  assert.deepEqual(factorScores(factors), { canvas: 34, rain: 10 });
+});
+
 test('conditionsAt 正常資料回傳七個有限數值', () => {
   const cond = conditionsAt(makeForecast(), makeAir(), epochOf('2026-08-05T18:35'));
   assert.deepEqual(Object.keys(cond).sort(),
@@ -129,14 +181,14 @@ for (const [field, hourlyKey] of Object.entries(FIELD_TO_HOURLY_KEY)) {
 test('buildData 在缺值時整批失敗，不回傳半套資料', () => {
   const air = makeAir({ aerosol_optical_depth: fill(null) });
   assert.throws(
-    () => buildData(makeForecast(), air, 'manual', epochOf('2026-08-05T15:00')),
+    () => buildData(makeForecast(), air, makePaths(), 'manual', epochOf('2026-08-05T15:00')),
     /conditionsAt: aod/,
   );
 });
 
 test('buildData 組出下一場日出日落與 3 天趨勢', () => {
   const now = epochOf('2026-08-05T15:00');
-  const data = buildData(makeForecast(), makeAir(), 'sunset-run', now);
+  const data = buildData(makeForecast(), makeAir(), makePaths(), 'sunset-run', now);
 
   assert.equal(data.trigger, 'sunset-run');
   assert.equal(data.generatedAt, new Date(now).toISOString());
@@ -150,6 +202,22 @@ test('buildData 組出下一場日出日落與 3 天趨勢', () => {
     assert.equal(typeof event.level, 'string');
   }
 
+  // lightPath 明細：光路 25、市中心 10 → 有效低雲 0.6×25+0.4×10 = 19（因子吃 19 而非 10）
+  const withPath = buildData(makeForecast(), makeAir(), makePaths(25), 'sunset-run', now);
+  for (const event of [withPath.next.sunset, withPath.next.sunrise]) {
+    const lp = event.lightPath;
+    assert.ok(lp, '應有 lightPath 欄位');
+    assert.equal(lp.pathLow, 25);
+    assert.equal(lp.centerLow, 10);
+    assert.equal(lp.points.length, 5);
+    for (const v of [lp.azimuth, lp.pathLow, lp.centerLow, ...lp.points.map(pt => pt.low)]) {
+      assert.ok(Number.isInteger(v), `lightPath 數值應為整數，實得 ${v}`);
+    }
+  }
+  const lowFactor25 = withPath.next.sunset.factors.find(f => f.key === 'lowCloud');
+  const lowFactor10 = data.next.sunset.factors.find(f => f.key === 'lowCloud');
+  assert.ok(lowFactor25.score < lowFactor10.score, '光路低雲較多時低雲因子得分應較低');
+
   assert.equal(data.outlook.length, 3);
   assert.deepEqual(data.outlook.map(d => d.date), ['2026-08-06', '2026-08-07', '2026-08-08']);
   assert.equal(data.outlook[0].sunrise.time, `2026-08-06T${SUNRISE}:00+08:00`);
@@ -161,7 +229,7 @@ test('buildData 組出下一場日出日落與 3 天趨勢', () => {
 // 下一場日落必須是明天。若把 toEpoch 的時區換成 +00:00，今日日落會被誤判為未來而挑錯天。
 test('buildData 在今日日落之後執行，下一場日落是明天（事件時刻以 +08:00 解析）', () => {
   const now = epochOf('2026-08-05T19:00');
-  const data = buildData(makeForecast(), makeAir(), 'sunset-run', now);
+  const data = buildData(makeForecast(), makeAir(), makePaths(), 'sunset-run', now);
 
   assert.equal(data.next.sunset.eventTime, `2026-08-06T${SUNSET}:00+08:00`);
   assert.equal(data.next.sunrise.eventTime, `2026-08-06T${SUNRISE}:00+08:00`);
