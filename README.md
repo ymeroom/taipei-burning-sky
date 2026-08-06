@@ -40,6 +40,30 @@ bash scripts/capture-local.sh sunset    # 日落後約 8 分鐘跑
 node scripts/calibrate.mjs              # 資料夠了再跑
 ```
 
+### 自動排程（Windows）
+
+`scripts/capture-scheduled.ps1` 是給工作排程器用的包裝：先 `git pull`，從 `docs/data.json`
+讀當天的實際事件時刻，睡到事件後 8 分鐘才抓幀，完成後 commit 並 push，全程寫進 `logs/capture-YYYY-MM.log`。
+電腦當時關機而錯過窗口 30 分鐘以上時，記一筆 log 後正常結束，不算失敗。
+
+註冊兩個每日工作（時間刻意早於全年最早的事件，等待交給腳本處理）：
+
+```powershell
+$s = 'D:\taipei-burning-sky\scripts\capture-scheduled.ps1'
+foreach ($j in @(@{N='BurningSky-Sunset';K='sunset';T='16:45'}, @{N='BurningSky-Sunrise';K='sunrise';T='04:50'})) {
+  Register-ScheduledTask -TaskName $j.N -Force `
+    -Action (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$s`" -Kind $($j.K)") `
+    -Trigger (New-ScheduledTaskTrigger -Daily -At $j.T) `
+    -Settings (New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 3) -MultipleInstances IgnoreNew) `
+    -Principal (New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited)
+}
+```
+
+工作以「使用者登入時執行」身分跑，才拿得到 Windows 認證管理員裡的 git 憑證。
+手動測試：`powershell -ExecutionPolicy Bypass -File scripts\capture-scheduled.ps1 -Kind sunset -Now`（`-Now` 跳過等待）。
+
+注意：`.ps1` 必須存成帶 BOM 的 UTF-8，否則 Windows PowerShell 5.1 會用 ANSI 讀檔、中文字被打碎導致語法錯誤。
+
 ### 兩個實測結論（2026-08-06）
 
 **衛星驗證行不通。** NICT 向日葵真彩產品在暮光時段幾乎全黑——台北視窗在日落前 10 分最亮像素只有
