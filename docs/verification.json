@@ -20,5 +20,16 @@
     "camBurnIndex": 0,
     "camera": "烘爐地",
     "capturedAt": "2026-08-06T21:32:10.796Z"
+  },
+  {
+    "date": "2026-08-07",
+    "kind": "sunset",
+    "eventTime": "2026-08-07T18:35:00+08:00",
+    "predictedScore": 51,
+    "camWarmRatio": 0.171,
+    "camBrightRatio": 0.997,
+    "camBurnIndex": 43,
+    "camera": "象山看台北",
+    "capturedAt": "2026-08-07T10:43:09.833Z"
   }
 ]
