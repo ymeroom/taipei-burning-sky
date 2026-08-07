@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-08-07T01:43:28.732Z",
-  "trigger": "manual",
+  "generatedAt": "2026-08-07T08:10:25.905Z",
+  "trigger": "sunset-run",
   "next": {
     "sunrise": {
       "eventTime": "2026-08-08T05:24:00+08:00",
-      "score": 16,
-      "level": "別期待",
+      "score": 32,
+      "level": "普通",
       "factors": [
         {
           "key": "canvas",
           "name": "中高雲畫布",
-          "value": "中高雲合計 100%",
-          "score": 0,
+          "value": "中高雲合計 89%",
+          "score": 7,
           "max": 40,
-          "reason": "天空整片糊住，光透不進來"
+          "reason": "中高雲偏厚，陽光較難透入染色"
         },
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 50%",
-          "score": 7,
+          "value": "低雲 33%",
+          "score": 13,
           "max": 25,
           "reason": "低雲偏多，地平線光線容易被擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 95%・能見度 2km",
-          "score": 0,
+          "value": "濕度 88%・能見度 14km",
+          "score": 3,
           "max": 15,
           "reason": "空氣又濕又濁，色彩會很淡"
         },
@@ -42,7 +42,7 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 82%",
+          "value": "降雨機率 96%",
           "score": 0,
           "max": 10,
           "reason": "降雨機率高，大概率泡湯"
@@ -50,60 +50,60 @@
       ],
       "lightPath": {
         "azimuth": 71,
-        "pathLow": 59,
-        "centerLow": 38,
+        "pathLow": 42,
+        "centerLow": 20,
         "points": [
           {
             "km": 40,
-            "low": 35
+            "low": 8
           },
           {
             "km": 90,
-            "low": 99
+            "low": 44
           },
           {
             "km": 150,
-            "low": 38
+            "low": 43
           },
           {
             "km": 220,
-            "low": 72
+            "low": 69
           },
           {
             "km": 300,
-            "low": 48
+            "low": 90
           }
         ]
       }
     },
     "sunset": {
       "eventTime": "2026-08-07T18:35:00+08:00",
-      "score": 93,
-      "level": "大燒預警",
+      "score": 51,
+      "level": "值得一看",
       "factors": [
         {
           "key": "canvas",
           "name": "中高雲畫布",
-          "value": "中高雲合計 61%",
-          "score": 39,
+          "value": "中高雲合計 100%",
+          "score": 0,
           "max": 40,
-          "reason": "中高雲偏厚，陽光較難透入染色"
+          "reason": "天空整片糊住，光透不進來"
         },
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 4%",
-          "score": 24,
+          "value": "低雲 10%",
+          "score": 21,
           "max": 25,
-          "reason": "低空乾淨，光路無阻"
+          "reason": "少量低雲，稍有遮擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 67%・能見度 30km",
-          "score": 12,
+          "value": "濕度 70%・能見度 30km",
+          "score": 11,
           "max": 15,
-          "reason": "空氣乾爽通透，顏色會很飽和"
+          "reason": "濕度或能見度普通，顏色打點折扣"
         },
         {
           "key": "aerosol",
@@ -116,36 +116,36 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 15%",
-          "score": 8,
+          "value": "降雨機率 11%",
+          "score": 9,
           "max": 10,
           "reason": "有些降雨機率，可能攪局"
         }
       ],
       "lightPath": {
         "azimuth": 289,
-        "pathLow": 2,
-        "centerLow": 6,
+        "pathLow": 5,
+        "centerLow": 18,
         "points": [
           {
             "km": 40,
-            "low": 3
+            "low": 5
           },
           {
             "km": 90,
-            "low": 1
+            "low": 4
           },
           {
             "km": 150,
-            "low": 3
+            "low": 7
           },
           {
             "km": 220,
-            "low": 0
+            "low": 4
           },
           {
             "km": 300,
-            "low": 5
+            "low": 2
           }
         ]
       }
@@ -156,33 +156,33 @@
       "date": "2026-08-08",
       "sunrise": {
         "time": "2026-08-08T05:24:00+08:00",
-        "score": 16
+        "score": 32
       },
       "sunset": {
         "time": "2026-08-08T18:34:00+08:00",
-        "score": 24
+        "score": 32
       }
     },
     {
       "date": "2026-08-09",
       "sunrise": {
         "time": "2026-08-09T05:25:00+08:00",
-        "score": 10
+        "score": 24
       },
       "sunset": {
         "time": "2026-08-09T18:33:00+08:00",
-        "score": 38
+        "score": 43
       }
     },
     {
       "date": "2026-08-10",
       "sunrise": {
         "time": "2026-08-10T05:25:00+08:00",
-        "score": 50
+        "score": 44
       },
       "sunset": {
         "time": "2026-08-10T18:33:00+08:00",
-        "score": 45
+        "score": 47
       }
     }
   ]
