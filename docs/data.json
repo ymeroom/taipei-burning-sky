@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-08T07:44:26.718Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-08-08T15:53:51.440Z",
+  "trigger": "sunrise-run",
   "next": {
     "sunrise": {
       "eventTime": "2026-08-09T05:25:00+08:00",
@@ -26,7 +26,7 @@
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 94%・能見度 2km",
+          "value": "濕度 92%・能見度 2km",
           "score": 0,
           "max": 15,
           "reason": "空氣又濕又濁，色彩會很淡"
@@ -34,7 +34,7 @@
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.14",
+          "value": "AOD 0.15",
           "score": 10,
           "max": 10,
           "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -50,36 +50,36 @@
       ],
       "lightPath": {
         "azimuth": 72,
-        "pathLow": 63,
-        "centerLow": 38,
+        "pathLow": 80,
+        "centerLow": 13,
         "points": [
           {
             "km": 40,
-            "low": 66
+            "low": 79
           },
           {
             "km": 90,
-            "low": 15
+            "low": 50
           },
           {
             "km": 150,
-            "low": 82
+            "low": 97
           },
           {
             "km": 220,
-            "low": 93
+            "low": 99
           },
           {
             "km": 300,
-            "low": 90
+            "low": 100
           }
         ]
       }
     },
     "sunset": {
-      "eventTime": "2026-08-08T18:34:00+08:00",
-      "score": 24,
-      "level": "別期待",
+      "eventTime": "2026-08-09T18:33:00+08:00",
+      "score": 54,
+      "level": "值得一看",
       "factors": [
         {
           "key": "canvas",
@@ -92,23 +92,23 @@
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 30%",
-          "score": 14,
+          "value": "低雲 8%",
+          "score": 22,
           "max": 25,
           "reason": "少量低雲，稍有遮擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 97%・能見度 2km",
-          "score": 0,
+          "value": "濕度 51%・能見度 38km",
+          "score": 15,
           "max": 15,
-          "reason": "空氣又濕又濁，色彩會很淡"
+          "reason": "空氣乾爽通透，顏色會很飽和"
         },
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.24",
+          "value": "AOD 0.07",
           "score": 10,
           "max": 10,
           "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -116,36 +116,36 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 98%",
-          "score": 0,
+          "value": "降雨機率 28%",
+          "score": 7,
           "max": 10,
-          "reason": "降雨機率高，大概率泡湯"
+          "reason": "有些降雨機率，可能攪局"
         }
       ],
       "lightPath": {
         "azimuth": 288,
-        "pathLow": 3,
-        "centerLow": 71,
+        "pathLow": 14,
+        "centerLow": 0,
         "points": [
           {
             "km": 40,
-            "low": 4
+            "low": 2
           },
           {
             "km": 90,
-            "low": 1
+            "low": 9
           },
           {
             "km": 150,
-            "low": 6
+            "low": 7
           },
           {
             "km": 220,
-            "low": 3
+            "low": 12
           },
           {
             "km": 300,
-            "low": 1
+            "low": 75
           }
         ]
       }
@@ -160,29 +160,29 @@
       },
       "sunset": {
         "time": "2026-08-09T18:33:00+08:00",
-        "score": 51
+        "score": 54
       }
     },
     {
       "date": "2026-08-10",
       "sunrise": {
         "time": "2026-08-10T05:25:00+08:00",
-        "score": 46
+        "score": 48
       },
       "sunset": {
         "time": "2026-08-10T18:33:00+08:00",
-        "score": 51
+        "score": 33
       }
     },
     {
       "date": "2026-08-11",
       "sunrise": {
         "time": "2026-08-11T05:26:00+08:00",
-        "score": 35
+        "score": 76
       },
       "sunset": {
         "time": "2026-08-11T18:32:00+08:00",
-        "score": 31
+        "score": 51
       }
     }
   ]
