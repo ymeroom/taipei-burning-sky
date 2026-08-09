@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { camMetrics, CAMERAS, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor } from './capture.mjs';
+import {
+  camMetrics, CAMERAS, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor,
+  splitFrames, meanAbsDiff, isStatic, STATIC_FRAME_MAD,
+} from './capture.mjs';
 import { findTodayPrediction, upsertVerification, taipeiToday, readJsonArray } from './verification.mjs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -73,6 +76,65 @@ test('camMetrics：夜空（暗紅街燈色）亮度不足不算暖', () => {
 
 test('camMetrics：位元組數不足時拋錯（ffmpeg 抓幀不完整）', () => {
   assert.throws(() => camMetrics(Buffer.alloc(100), 20, 20), /影格位元組不足/);
+});
+
+// ---- 無訊號偵測：待機卡是靜止圖，真實鏡頭永遠有雜訊 ----
+
+test('splitFrames 依尺寸切出正確幀數', () => {
+  const size = 4 * 3 * 3;
+  assert.equal(splitFrames(Buffer.alloc(size * 2), 4, 3).length, 2);
+  assert.equal(splitFrames(Buffer.alloc(size), 4, 3).length, 1);
+  assert.equal(splitFrames(Buffer.alloc(size - 1), 4, 3).length, 0, '不足一幀不該回傳半幀');
+  const [a, b] = splitFrames(Buffer.concat([Buffer.alloc(size, 7), Buffer.alloc(size, 9)]), 4, 3);
+  assert.equal(a[0], 7);
+  assert.equal(b[0], 9);
+});
+
+test('meanAbsDiff 計算平均絕對差；長度不同拋錯', () => {
+  assert.equal(meanAbsDiff(Buffer.from([10, 20]), Buffer.from([10, 20])), 0);
+  assert.equal(meanAbsDiff(Buffer.from([0, 0]), Buffer.from([4, 6])), 5);
+  assert.throws(() => meanAbsDiff(Buffer.from([1]), Buffer.from([1, 2])), /長度不同/);
+});
+
+test('isStatic：兩幀完全相同判為待機卡', () => {
+  const f = Buffer.alloc(300, 128);
+  assert.equal(isStatic([f, Buffer.from(f)]), true);
+});
+
+test('isStatic：真實鏡頭的雜訊不會被誤判', () => {
+  // 實測烘爐地在霧雨低細節畫面下，相隔三秒兩幀 MAD 仍有 19.9，門檻 1.0 有二十倍餘裕
+  const a = Buffer.alloc(300, 128);
+  const b = Buffer.alloc(300);
+  for (let i = 0; i < b.length; i++) b[i] = 128 + (i % 40) - 20; // 平均絕對差約 10
+  assert.ok(meanAbsDiff(a, b) > STATIC_FRAME_MAD * 5, '合成雜訊應遠高於門檻');
+  assert.equal(isStatic([a, b]), false);
+});
+
+test('isStatic：只有一幀時不做判斷（不亂猜）', () => {
+  assert.equal(isStatic([Buffer.alloc(300, 5)]), false);
+  assert.equal(isStatic([]), false);
+});
+
+test('STATIC_FRAME_MAD 門檻為 1.0', () => assert.equal(STATIC_FRAME_MAD, 1.0));
+
+test('待機卡情境：靜止的夕陽底圖同時觸發無訊號與高暖色，兩道防線都攔得住', () => {
+  // 新北觀旅局的待機卡上緣是一張夕陽照，暖色比例極高但畫面完全不動
+  const w = 20, h = 20, size = w * h * 3;
+  const card = Buffer.alloc(size);
+  const skyRows = Math.round(h * SKY_FRACTION);
+  for (let y = 0; y < h; y++) {
+    const [r, g, b] = y < skyRows ? [235, 120, 80] : [30, 30, 40];
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 3;
+      card[i] = r; card[i + 1] = g; card[i + 2] = b;
+    }
+  }
+  const twoFrames = Buffer.concat([card, card]);
+  const frames = splitFrames(twoFrames, w, h);
+  const m = camMetrics(twoFrames, w, h);
+  assert.equal(isStatic(frames), true, '主要防線：畫面靜止');
+  assert.equal(isSuspect(m), true, '次要防線：整片天暖色');
+  assert.equal(m.camBurnIndex, 100, '若兩道都沒攔，就會變成假的滿分');
 });
 
 // ---- 可疑量測偵測 ----

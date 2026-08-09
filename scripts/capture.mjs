@@ -48,10 +48,39 @@ export function camMetrics(data, width, height, skyFraction = SKY_FRACTION) {
   };
 }
 
+// ---- 無訊號偵測（主要防線）----
+//
+// 2026-08-09 日出量到 camBurnIndex 100，實際上鏡頭當時播的是新北觀旅局的
+// 「Cam Under Maintenance」待機卡——而那張卡的底圖剛好是一張夕陽照，上緣整片橘紅。
+// 待機卡是靜止圖，真實鏡頭則永遠有感測雜訊：實測烘爐地在霧雨低細節畫面下，
+// 相隔三秒兩幀的平均絕對差仍有 19.9，待機卡則為 0。以此判定比看顏色可靠得多，
+// 也不會誤殺真正的滿天大燒，且待機卡改版後照樣有效。
+export const STATIC_FRAME_MAD = 1.0;
+
+// 把多幀 raw buffer 依尺寸切開
+export function splitFrames(data, width, height) {
+  const size = width * height * 3;
+  const count = Math.floor(data.length / size);
+  return Array.from({ length: count }, (_, i) => data.subarray(i * size, (i + 1) * size));
+}
+
+export function meanAbsDiff(a, b) {
+  if (a.length !== b.length) {
+    throw new Error(`meanAbsDiff: 兩幀長度不同（${a.length} vs ${b.length}）`);
+  }
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) sum += Math.abs(a[i] - b[i]);
+  return sum / a.length;
+}
+
+export function isStatic(frames) {
+  if (frames.length < 2) return false; // 只有一幀就無從判斷，不亂猜
+  return meanAbsDiff(frames[0], frames[1]) < STATIC_FRAME_MAD;
+}
+
+// ---- 顏色合理性（次要防線）----
 // 真實霞光是局部、有結構的：2026-08-07 那次確認有燒的日落，暖色只佔天空 17.1%。
-// 整片天空均勻轉暖代表的多半不是霞光，而是相機低光源暖色偏移或串流跑出非天空畫面。
-// 2026-08-09 日出即為實例：預報 16 分（厚雲、降雨機率 ≥80%），量到 warm 0.991、
-// 人眼確認當天完全沒有霞光。這類紀錄照樣存檔，但標記後排除於權重校準之外。
+// 整片天均勻轉暖仍值得存疑，留作無訊號偵測失效時的後備。
 export const SUSPECT_WARM_RATIO = 0.9;
 
 export function isSuspect(metrics) {
@@ -74,8 +103,13 @@ async function main() {
   const pred = findTodayPrediction(history, kind, date);
   if (!pred) throw new Error(`capture: history 裡找不到 ${date} 的 ${kind} 預測，無可驗證對象`);
 
-  const frame = await readFile(framePath);
-  const metrics = camMetrics(frame, width, height);
+  const raw = await readFile(framePath);
+  const frames = splitFrames(raw, width, height);
+  if (frames.length === 0) throw new Error(`capture: 影格檔案太小（${raw.length} bytes，單幀需 ${width * height * 3}）`);
+  const metrics = camMetrics(raw, width, height);
+
+  // 靜止畫面＝待機卡或串流凍結，量到什麼顏色都不算數
+  const noSignal = isStatic(frames);
 
   // 留一張縮圖，日後出現可疑數值時才有畫面可查——2026-08-09 那筆就是因為沒存畫面而無從查證
   let framePathRel;
@@ -86,7 +120,11 @@ async function main() {
     await copyFile(thumbArg, dest);
   }
 
-  const suspect = isSuspect(metrics);
+  const suspect = noSignal || isSuspect(metrics);
+  const reason = noSignal
+    ? `畫面靜止（相隔三秒兩幀幾乎完全相同），判定為待機卡或串流凍結，不是真實天空`
+    : `暖色比例 ${metrics.camWarmRatio} 超過 ${SUSPECT_WARM_RATIO}，整片天均勻轉暖不像真實霞光`;
+
   const records = await readJsonArray(VERIFICATION_PATH);
   upsertVerification(records, {
     date, kind,
@@ -96,13 +134,16 @@ async function main() {
     // 這兩個欄位一律寫入：upsert 是 Object.assign，省略鍵會讓舊值殘留，
     // 重跑後量到正常值卻還掛著 suspect 就麻煩了。undefined 會被 JSON.stringify 丟掉。
     suspect: suspect || undefined,
-    suspectReason: suspect ? `暖色比例 ${metrics.camWarmRatio} 超過 ${SUSPECT_WARM_RATIO}，整片天均勻轉暖不像真實霞光` : undefined,
+    suspectReason: suspect ? reason : undefined,
+    noSignal: noSignal || undefined,
     ...(framePathRel ? { frame: framePathRel } : {}),
     camera: CAMERAS[kind].name,
     capturedAt: new Date().toISOString(),
   });
   await writeJsonArray(VERIFICATION_PATH, records);
-  console.log(`OK ${date} ${kind} predicted=${pred.predictedScore} camBurnIndex=${metrics.camBurnIndex} warm=${metrics.camWarmRatio} bright=${metrics.camBrightRatio}${suspect ? ' ⚠ 標記為可疑，不列入校準' : ''}`);
+  const flag = noSignal ? ' ⚠ 無訊號（待機卡／凍結），不列入校準'
+    : suspect ? ' ⚠ 標記為可疑，不列入校準' : '';
+  console.log(`OK ${date} ${kind} predicted=${pred.predictedScore} camBurnIndex=${metrics.camBurnIndex} warm=${metrics.camWarmRatio} bright=${metrics.camBrightRatio}${flag}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

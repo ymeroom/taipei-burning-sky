@@ -63,7 +63,8 @@
     "camBrightRatio": 1,
     "camBurnIndex": 100,
     "suspect": true,
-    "suspectReason": "暖色比例 0.991 超過 0.9，整片天均勻轉暖不像真實霞光；當日預報 16 分（厚雲、降雨機率 ≥80%），使用者人眼確認當天無霞光。未存畫面故無法查證，此筆不列入校準",
+    "noSignal": true,
+    "suspectReason": "鏡頭當時播放新北觀旅局的「Cam Under Maintenance」待機卡（網路與電力因素），該卡底圖為夕陽照，上緣整片橘紅故量到 0.991。使用者人眼確認當天無霞光。此筆不列入校準",
     "camera": "烘爐地",
     "capturedAt": "2026-08-08T21:33:12.005Z"
   }

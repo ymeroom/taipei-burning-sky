@@ -24,15 +24,15 @@ FRAME=$(mktemp -t frame-XXXXXX.raw)
 THUMB=$(mktemp -t thumb-XXXXXX.jpg)
 trap 'rm -f "$FRAME" "$THUMB"' EXIT
 
-# 一次輸入、兩個輸出：raw 供計算，jpg 留存以便日後查證可疑數值
+# 一次輸入、兩個輸出：raw 取相隔三秒的兩幀（供靜止畫面偵測），jpg 留存以便日後查證
 ffmpeg -loglevel error -y -i "$STREAM" \
-  -vframes 1 -vf scale=320:-1 -f rawvideo -pix_fmt rgb24 "$FRAME" \
-  -vframes 1 -vf scale=160:-1 -q:v 6 "$THUMB"
+  -vf "fps=1/3,scale=320:-1" -frames:v 2 -f rawvideo -pix_fmt rgb24 "$FRAME" \
+  -vf scale=160:-1 -frames:v 1 -q:v 6 "$THUMB"
 
 BYTES=$(wc -c < "$FRAME")
-HEIGHT=$(( BYTES / 320 / 3 ))
+HEIGHT=$(( BYTES / 320 / 3 / 2 ))
 [ "$HEIGHT" -gt 0 ] || { echo "抓幀失敗（$BYTES bytes）" >&2; exit 1; }
-echo "抓到 320×${HEIGHT} 影格，縮圖 $(wc -c < "$THUMB") bytes"
+echo "抓到 2 幀 320×${HEIGHT} 影格，縮圖 $(wc -c < "$THUMB") bytes"
 
 # 日期留空字串即由 capture.mjs 以台北時區自行判定；縮圖必須放在日期之後的位置
 node scripts/capture.mjs "$KIND" "$FRAME" 320 "$HEIGHT" "$DATE_ARG" "$THUMB"
