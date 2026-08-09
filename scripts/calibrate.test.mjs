@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  joinSamples, standardize, logisticRegression, suggestWeights, report,
+  joinSamples, standardize, logisticRegression, suggestWeights, report, countSuspect,
   FACTOR_KEYS, BURN_THRESHOLD, MIN_SAMPLES,
 } from './calibrate.mjs';
 
@@ -27,6 +27,34 @@ test('joinSamples 略過無 factors 的舊紀錄與未驗證場次', () => {
   // 有 factors 但只有衛星欄位、沒有 camBurnIndex
   const withFactors = [{ sunsetTime: '2026-08-06T18:35:00+08:00', sunsetFactors: { canvas: 1, lowCloud: 1, clarity: 1, aerosol: 1, rain: 1 } }];
   assert.equal(joinSamples(withFactors, [{ date: '2026-08-06', kind: 'sunset', satCanvasScore: 40 }]).length, 0);
+});
+
+test('joinSamples 排除標記為可疑的量測', () => {
+  const history = [
+    { sunriseTime: '2026-08-09T05:25:00+08:00', sunriseFactors: { canvas: 0, lowCloud: 6, clarity: 0, aerosol: 10, rain: 0 } },
+    { sunsetTime: '2026-08-07T18:35:00+08:00', sunsetFactors: { canvas: 20, lowCloud: 21, clarity: 11, aerosol: 10, rain: 9 } },
+  ];
+  const verifications = [
+    // 2026-08-09 實例：預報 16 分卻量到 burnIndex 100，人眼確認沒霞光
+    { date: '2026-08-09', kind: 'sunrise', camBurnIndex: 100, suspect: true },
+    { date: '2026-08-07', kind: 'sunset', camBurnIndex: 43 },
+  ];
+  const samples = joinSamples(history, verifications);
+  assert.equal(samples.length, 1, '可疑那筆不該進樣本');
+  assert.equal(samples[0].kind, 'sunset');
+});
+
+test('countSuspect 計算被排除的筆數', () => {
+  assert.equal(countSuspect([{ suspect: true }, {}, { suspect: true }, { suspect: false }]), 2);
+  assert.equal(countSuspect([]), 0);
+});
+
+test('report 會說明排除了幾筆可疑資料', () => {
+  const samples = Array.from({ length: 60 }, (_, i) => ({
+    x: [i % 2 ? 35 : 5, (i * 7) % 20, 10, 10, 10], y: i % 2 ? 1 : 0,
+  }));
+  assert.match(report(samples, 3), /另有 3 筆標記為可疑，已排除/);
+  assert.doesNotMatch(report(samples, 0), /可疑/);
 });
 
 test('standardize：平均為 0、標準差為 1；常數欄位歸零不產生 NaN', () => {

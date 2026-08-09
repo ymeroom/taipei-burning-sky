@@ -35,6 +35,13 @@ GitHub Actions 依排程執行 `scripts/update.mjs`：
 
 攝影機：日落＝象山看台北（台北觀光官方）、日出＝烘爐地（新北觀光官方）。
 
+每次抓幀會另存一張 160px 縮圖到 `docs/frames/<date>-<kind>.jpg`（約 1–2KB），供日後查證可疑數值。
+`camWarmRatio > 0.9` 時自動標記 `suspect: true`——真實霞光是局部的（2026-08-07 那次確認有燒的日落只有 17.1%），
+整片天均勻轉暖多半是相機低光源偏色或串流跑出非天空畫面。標記過的紀錄照樣存檔，但 `calibrate.mjs` 會排除。
+
+2026-08-09 日出即為實例：預報 16 分（厚雲、降雨機率 ≥80%）卻量到 `camBurnIndex 100`，
+人眼確認當天完全沒有霞光。當時尚未存畫面，無從查證——縮圖機制就是為此補上的。
+
 ```bash
 bash scripts/capture-local.sh sunset    # 日落後約 8 分鐘跑
 node scripts/calibrate.mjs              # 資料夠了再跑

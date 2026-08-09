@@ -150,6 +150,8 @@ function render(data, history, verifications = []) {
   const actualFor = (eventTime, kind) => {
     const rec = verifications.find(v => v.date === eventTime.slice(0, 10) && v.kind === kind);
     if (!rec || !Number.isFinite(rec.camBurnIndex)) return '';
+    // 標記為可疑的量測不當作實況：整片天均勻轉暖多半是相機偏色，不是霞光
+    if (rec.suspect) return `<span title="量測可疑，不列入校準">?</span>`;
     return rec.camBurnIndex >= 50 ? '🔥' : rec.camBurnIndex >= 25 ? '淡燒' : '—';
   };
   document.getElementById('history').innerHTML = history.slice(-14).reverse().map(h =>

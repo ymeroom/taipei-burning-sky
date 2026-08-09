@@ -66,7 +66,7 @@ try {
   & $bash -lc "cd '$($repo -replace '\\','/')' && bash scripts/capture-local.sh $Kind" 2>&1 | ForEach-Object { Write-Log $_ }
   if ($LASTEXITCODE -ne 0) { Write-Log "capture-local.sh 失敗（exit $LASTEXITCODE）"; exit 1 }
 
-  git add docs/verification.json
+  git add docs/verification.json docs/frames
   git diff --cached --quiet
   if ($LASTEXITCODE -ne 0) {
     git commit -q -m "chore: $Kind 實況驗證資料"

@@ -18,6 +18,8 @@ export function joinSamples(history, verifications) {
   for (const v of verifications) {
     const burn = v.camBurnIndex;
     if (!Number.isFinite(burn)) continue;
+    // 標記為可疑的量測（整片天均勻轉暖，多半是相機偏色而非霞光）不能當標籤用
+    if (v.suspect === true) continue;
     const factors = history.reduce((found, h) => {
       const t = h[`${v.kind}Time`];
       return (typeof t === 'string' && t.slice(0, 10) === v.date && h[`${v.kind}Factors`]) ? h[`${v.kind}Factors`] : found;
@@ -82,9 +84,14 @@ export function suggestWeights(coefficients) {
   return weights;
 }
 
-export function report(samples) {
+export function countSuspect(verifications) {
+  return verifications.filter(v => v.suspect === true).length;
+}
+
+export function report(samples, suspectCount = 0) {
   const positives = samples.filter(s => s.y === 1).length;
   const lines = [`配對樣本 ${samples.length} 筆（有燒 ${positives}、沒燒 ${samples.length - positives}）`];
+  if (suspectCount > 0) lines.push(`另有 ${suspectCount} 筆標記為可疑，已排除`);
   if (positives === 0 || positives === samples.length) {
     lines.push('實況標籤全部相同，無法迴歸——再累積幾天有變化的資料再跑。');
     return lines.join('\n');
@@ -109,11 +116,13 @@ async function main() {
     readJsonArray(VERIFICATION_PATH),
   ]);
   const samples = joinSamples(history, verifications);
+  const suspectCount = countSuspect(verifications);
   if (samples.length < MIN_SAMPLES) {
-    console.log(`資料不足（目前 ${samples.length} 筆，需要 ${MIN_SAMPLES} 筆）。繼續累積，過幾週再跑。`);
+    const note = suspectCount > 0 ? `，另有 ${suspectCount} 筆可疑已排除` : '';
+    console.log(`資料不足（目前 ${samples.length} 筆${note}，需要 ${MIN_SAMPLES} 筆）。繼續累積，過幾週再跑。`);
     return;
   }
-  console.log(report(samples));
+  console.log(report(samples, suspectCount));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
