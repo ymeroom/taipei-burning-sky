@@ -51,20 +51,44 @@ try {
   $dataPath = Join-Path $repo 'docs\data.json'
   if (-not (Test-Path $dataPath)) { Write-Log 'docs/data.json 不存在，先跑 update.mjs'; exit 1 }
   $data = Get-Content $dataPath -Raw | ConvertFrom-Json
-  $eventTime = [datetimeoffset]::Parse($data.next.$Kind.eventTime)
-  $target = $eventTime.AddMinutes(8)
-  $waitSec = [int]($target - [datetimeoffset]::Now).TotalSeconds
-  Write-Log ("事件 {0}，目標抓幀 {1}，需等待 {2} 秒" -f $eventTime.ToString('yyyy-MM-dd HH:mm'), $target.ToString('HH:mm'), $waitSec)
 
-  if (-not $Now) {
-    if ($waitSec -lt -1800) { Write-Log '已錯過抓幀窗口 30 分鐘以上（電腦當時可能沒開），本次略過'; exit 0 }
-    if ($waitSec -gt 10800) { Write-Log '距離事件超過 3 小時，排程時間設定可能有誤，本次略過'; exit 0 }
-    if ($waitSec -gt 0) { Start-Sleep -Seconds $waitSec }
+  # 收集所有支援本場次的地點，依事件時刻由早到晚排序（四地相差數分鐘，依序抓完約 10 分鐘）
+  $targets = @()
+  foreach ($loc in $data.locations) {
+    $ev = $loc.events.$Kind
+    if ($null -eq $ev) { continue }
+    $targets += [pscustomobject]@{
+      Id        = $loc.id
+      Name      = $loc.name
+      EventTime = [datetimeoffset]::Parse($ev.eventTime)
+    }
+  }
+  $targets = $targets | Sort-Object EventTime
+  if ($targets.Count -eq 0) { Write-Log "data.json 裡沒有任何地點支援 $Kind 場次"; exit 1 }
+  Write-Log ("本場次共 {0} 個地點：{1}" -f $targets.Count, (($targets | ForEach-Object { $_.Id }) -join '、'))
+
+  # 單一地點失敗不影響其他地點——鏡頭掛掉、錯過窗口都只跳過該地
+  $okCount = 0
+  foreach ($t in $targets) {
+    $target = $t.EventTime.AddMinutes(8)
+    $waitSec = [int]($target - [datetimeoffset]::Now).TotalSeconds
+    Write-Log ("[{0}] 事件 {1}，目標抓幀 {2}，需等待 {3} 秒" -f `
+      $t.Id, $t.EventTime.ToString('yyyy-MM-dd HH:mm'), $target.ToString('HH:mm'), $waitSec)
+
+    if (-not $Now) {
+      if ($waitSec -lt -1800) { Write-Log "[$($t.Id)] 已錯過抓幀窗口 30 分鐘以上，略過此地點"; continue }
+      if ($waitSec -gt 10800) { Write-Log "[$($t.Id)] 距離事件超過 3 小時，排程時間可能有誤，略過此地點"; continue }
+      if ($waitSec -gt 0) { Start-Sleep -Seconds $waitSec }
+    }
+
+    & $bash -lc "cd '$($repo -replace '\\','/')' && bash scripts/capture-local.sh $Kind '' $($t.Id)" 2>&1 |
+      ForEach-Object { Write-Log "[$($t.Id)] $_" }
+    if ($LASTEXITCODE -ne 0) { Write-Log "[$($t.Id)] capture-local.sh 失敗（exit $LASTEXITCODE），繼續下一個地點" }
+    else { $okCount++ }
   }
 
-  Write-Log '抓幀並計算 camBurnIndex'
-  & $bash -lc "cd '$($repo -replace '\\','/')' && bash scripts/capture-local.sh $Kind" 2>&1 | ForEach-Object { Write-Log $_ }
-  if ($LASTEXITCODE -ne 0) { Write-Log "capture-local.sh 失敗（exit $LASTEXITCODE）"; exit 1 }
+  if ($okCount -eq 0) { Write-Log '所有地點都失敗，本次沒有任何有效資料'; exit 1 }
+  Write-Log ("{0}/{1} 個地點抓幀成功" -f $okCount, $targets.Count)
 
   git add docs/verification.json docs/frames
   git diff --cached --quiet
