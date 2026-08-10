@@ -4,7 +4,7 @@
 //
 // 刻意不自動改 score.mjs：權重是這個模型的核心假設，要人看過報告再決定。
 import { pathToFileURL } from 'node:url';
-import { readJsonArray, VERIFICATION_PATH } from './verification.mjs';
+import { readJsonArray, VERIFICATION_PATH, DEFAULT_LOCATION_ID } from './verification.mjs';
 import { WEIGHTS } from './score.mjs';
 
 const HISTORY_PATH = new URL('../docs/history.json', import.meta.url);
@@ -20,14 +20,20 @@ export function joinSamples(history, verifications) {
     if (!Number.isFinite(burn)) continue;
     // 標記為可疑的量測（整片天均勻轉暖，多半是相機偏色而非霞光）不能當標籤用
     if (v.suspect === true) continue;
+    // 以 (date, kind, location) 三鍵配對。新格式 history 把各地資料放在 locations[<id>]，
+    // 舊格式（多地點之前）欄位在頂層，僅台北有資料。
+    const location = v.location ?? DEFAULT_LOCATION_ID;
     const factors = history.reduce((found, h) => {
-      const t = h[`${v.kind}Time`];
-      return (typeof t === 'string' && t.slice(0, 10) === v.date && h[`${v.kind}Factors`]) ? h[`${v.kind}Factors`] : found;
+      const entry = h.locations ? h.locations[location] : (location === DEFAULT_LOCATION_ID ? h : null);
+      if (!entry) return found;
+      const t = entry[`${v.kind}Time`];
+      return (typeof t === 'string' && t.slice(0, 10) === v.date && entry[`${v.kind}Factors`])
+        ? entry[`${v.kind}Factors`] : found;
     }, null);
     if (!factors) continue;
     if (!FACTOR_KEYS.every(k => Number.isFinite(factors[k]))) continue;
     samples.push({
-      date: v.date, kind: v.kind,
+      date: v.date, kind: v.kind, location,
       x: FACTOR_KEYS.map(k => factors[k]),
       y: burn >= BURN_THRESHOLD ? 1 : 0,
     });
@@ -88,9 +94,21 @@ export function countSuspect(verifications) {
   return verifications.filter(v => v.suspect === true).length;
 }
 
+// 四地點合併擬合（物理模型相同），但記錄各地筆數以便日後決定要不要分開
+export function countByLocation(samples) {
+  const out = {};
+  for (const s of samples) {
+    const k = s.location ?? DEFAULT_LOCATION_ID;
+    out[k] = (out[k] ?? 0) + 1;
+  }
+  return out;
+}
+
 export function report(samples, suspectCount = 0) {
   const positives = samples.filter(s => s.y === 1).length;
   const lines = [`配對樣本 ${samples.length} 筆（有燒 ${positives}、沒燒 ${samples.length - positives}）`];
+  const byLoc = countByLocation(samples);
+  lines.push('各地點樣本數：' + Object.entries(byLoc).map(([k, n]) => `${k} ${n}`).join('、'));
   if (suspectCount > 0) lines.push(`另有 ${suspectCount} 筆標記為可疑，已排除`);
   if (positives === 0 || positives === samples.length) {
     lines.push('實況標籤全部相同，無法迴歸——再累積幾天有變化的資料再跑。');

@@ -1,9 +1,61 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  joinSamples, standardize, logisticRegression, suggestWeights, report, countSuspect,
+  joinSamples, standardize, logisticRegression, suggestWeights, report, countSuspect, countByLocation,
   FACTOR_KEYS, BURN_THRESHOLD, MIN_SAMPLES,
 } from './calibrate.mjs';
+
+const F = (canvas = 20) => ({ canvas, lowCloud: 20, clarity: 10, aerosol: 10, rain: 10 });
+
+// ---- 多地點：三鍵配對 ----
+
+test('joinSamples 以 (date,kind,location) 三鍵配對，同日同場次不同地點各成一筆', () => {
+  const history = [{
+    ranAt: 'x', trigger: 'sunset-run',
+    locations: {
+      taipei: { sunsetTime: '2026-08-11T18:32:00+08:00', sunsetFactors: F(12) },
+      gaomei: { sunsetTime: '2026-08-11T18:35:00+08:00', sunsetFactors: F(40) },
+    },
+  }];
+  const verifications = [
+    { date: '2026-08-11', kind: 'sunset', location: 'taipei', camBurnIndex: 5 },
+    { date: '2026-08-11', kind: 'sunset', location: 'gaomei', camBurnIndex: 70 },
+  ];
+  const samples = joinSamples(history, verifications);
+  assert.equal(samples.length, 2);
+  const byLoc = Object.fromEntries(samples.map(s => [s.location, s]));
+  assert.equal(byLoc.taipei.x[0], 12, '台北應拿到自己的 canvas 分數');
+  assert.equal(byLoc.gaomei.x[0], 40, '高美應拿到自己的 canvas 分數');
+  assert.equal(byLoc.taipei.y, 0);
+  assert.equal(byLoc.gaomei.y, 1);
+});
+
+test('joinSamples 相容舊格式 history（欄位在頂層、無 location 欄位）', () => {
+  const history = [{ sunsetTime: '2026-08-07T18:35:00+08:00', sunsetFactors: F(20) }];
+  const legacy = joinSamples(history, [{ date: '2026-08-07', kind: 'sunset', camBurnIndex: 43 }]);
+  assert.equal(legacy.length, 1);
+  assert.equal(legacy[0].location, 'taipei', '缺 location 的舊紀錄視為台北');
+  // 舊格式沒有其他地點的資料
+  assert.equal(joinSamples(history, [{ date: '2026-08-07', kind: 'sunset', location: 'gaomei', camBurnIndex: 43 }]).length, 0);
+});
+
+test('countByLocation 統計各地筆數', () => {
+  assert.deepEqual(countByLocation([
+    { location: 'taipei' }, { location: 'gaomei' }, { location: 'taipei' },
+  ]), { taipei: 2, gaomei: 1 });
+  assert.deepEqual(countByLocation([]), {});
+});
+
+test('report 列出各地點樣本數', () => {
+  const samples = Array.from({ length: 60 }, (_, i) => ({
+    x: [i % 2 ? 35 : 5, (i * 7) % 20, 10, 10, 10], y: i % 2 ? 1 : 0,
+    location: i % 3 === 0 ? 'gaomei' : 'taipei',
+  }));
+  const text = report(samples, 0);
+  assert.match(text, /各地點樣本數：/);
+  assert.match(text, /taipei 40/);
+  assert.match(text, /gaomei 20/);
+});
 
 test('joinSamples 以 (date,kind) 配對，標籤由 camBurnIndex 門檻決定', () => {
   const history = [
