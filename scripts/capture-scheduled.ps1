@@ -81,8 +81,19 @@ try {
       if ($waitSec -gt 0) { Start-Sleep -Seconds $waitSec }
     }
 
-    & $bash -lc "cd '$($repo -replace '\\','/')' && bash scripts/capture-local.sh $Kind '' $($t.Id)" 2>&1 |
-      ForEach-Object { Write-Log "[$($t.Id)] $_" }
+    # 日期取自事件本身而非執行當下：抓幀若跨過午夜，taipeiToday() 會對不上事件日期
+    $eventDate = $t.EventTime.ToString('yyyy-MM-dd')
+
+    # 子行程寫 stderr 時，ErrorActionPreference=Stop 會把它當例外拋出而中斷整個迴圈。
+    # 這裡要的是「單一地點失敗不影響其他地點」，所以暫時放行。
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+      & $bash -lc "cd '$($repo -replace '\\','/')' && bash scripts/capture-local.sh $Kind $eventDate $($t.Id)" 2>&1 |
+        ForEach-Object { Write-Log "[$($t.Id)] $_" }
+    } finally {
+      $ErrorActionPreference = $prevEap
+    }
     if ($LASTEXITCODE -ne 0) { Write-Log "[$($t.Id)] capture-local.sh 失敗（exit $LASTEXITCODE），繼續下一個地點" }
     else { $okCount++ }
   }
