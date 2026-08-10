@@ -88,11 +88,9 @@
     "camWarmRatio": 0,
     "camBrightRatio": 1,
     "camBurnIndex": 0,
-    "suspect": true,
-    "suspectReason": "畫面靜止（相隔三秒兩幀幾乎完全相同），判定為待機卡或串流凍結，不是真實天空",
-    "noSignal": true,
     "frame": "frames/2026-08-10-sunrise.jpg",
     "camera": "烘爐地",
-    "capturedAt": "2026-08-09T21:33:10.929Z"
+    "capturedAt": "2026-08-09T21:33:10.929Z",
+    "note": "原被舊版靜止偵測（平均差門檻 1.0）誤判為無訊號。縮圖佐證為真實晨景而非待機卡，且 warm=0 與畫面相符，故取消標記納入校準。判準已改為「兩幀完全相同」"
   }
 ]

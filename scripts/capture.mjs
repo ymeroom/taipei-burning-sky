@@ -52,10 +52,24 @@ export function camMetrics(data, width, height, skyFraction = SKY_FRACTION) {
 //
 // 2026-08-09 日出量到 camBurnIndex 100，實際上鏡頭當時播的是新北觀旅局的
 // 「Cam Under Maintenance」待機卡——而那張卡的底圖剛好是一張夕陽照，上緣整片橘紅。
-// 待機卡是靜止圖，真實鏡頭則永遠有感測雜訊：實測烘爐地在霧雨低細節畫面下，
-// 相隔三秒兩幀的平均絕對差仍有 19.9，待機卡則為 0。以此判定比看顏色可靠得多，
-// 也不會誤殺真正的滿天大燒，且待機卡改版後照樣有效。
-export const STATIC_FRAME_MAD = 1.0;
+// 待機卡是靜止圖，真實鏡頭則永遠有像素在變，以此判定比看顏色可靠。
+//
+// 判準用「最大差異」而非平均：平均會被大量沒變的像素稀釋，隨場景動態劇烈變化——
+// 實測同一支烘爐地鏡頭，霧雨天 MAD 19.9、平靜晴晨只有 0.18，差兩個數量級，
+// 任何固定門檻都會在其中一端出錯（2026-08-10 日出即因門檻設 1.0 而被誤判為無訊號）。
+// 最大差異則是類別性的：平靜晴晨仍有 45，真正的靜止圖精確為 0。
+export function frameDiff(a, b) {
+  if (a.length !== b.length) {
+    throw new Error(`frameDiff: 兩幀長度不同（${a.length} vs ${b.length}）`);
+  }
+  let sum = 0, max = 0;
+  for (let i = 0; i < a.length; i++) {
+    const d = Math.abs(a[i] - b[i]);
+    sum += d;
+    if (d > max) max = d;
+  }
+  return { mean: Math.round(sum / a.length * 1000) / 1000, max };
+}
 
 // 把多幀 raw buffer 依尺寸切開
 export function splitFrames(data, width, height) {
@@ -64,18 +78,10 @@ export function splitFrames(data, width, height) {
   return Array.from({ length: count }, (_, i) => data.subarray(i * size, (i + 1) * size));
 }
 
-export function meanAbsDiff(a, b) {
-  if (a.length !== b.length) {
-    throw new Error(`meanAbsDiff: 兩幀長度不同（${a.length} vs ${b.length}）`);
-  }
-  let sum = 0;
-  for (let i = 0; i < a.length; i++) sum += Math.abs(a[i] - b[i]);
-  return sum / a.length;
-}
-
+// 完全相同才算靜止。差一個像素就代表鏡頭是活的。
 export function isStatic(frames) {
   if (frames.length < 2) return false; // 只有一幀就無從判斷，不亂猜
-  return meanAbsDiff(frames[0], frames[1]) < STATIC_FRAME_MAD;
+  return frameDiff(frames[0], frames[1]).max === 0;
 }
 
 // ---- 顏色合理性（次要防線）----
@@ -108,7 +114,9 @@ async function main() {
   if (frames.length === 0) throw new Error(`capture: 影格檔案太小（${raw.length} bytes，單幀需 ${width * height * 3}）`);
   const metrics = camMetrics(raw, width, height);
 
-  // 靜止畫面＝待機卡或串流凍結，量到什麼顏色都不算數
+  // 靜止畫面＝待機卡或串流凍結，量到什麼顏色都不算數。
+  // 差異數值一併存檔：日後若要重新檢討判準，才不必再靠猜的。
+  const diff = frames.length >= 2 ? frameDiff(frames[0], frames[1]) : null;
   const noSignal = isStatic(frames);
 
   // 留一張縮圖，日後出現可疑數值時才有畫面可查——2026-08-09 那筆就是因為沒存畫面而無從查證
@@ -122,7 +130,7 @@ async function main() {
 
   const suspect = noSignal || isSuspect(metrics);
   const reason = noSignal
-    ? `畫面靜止（相隔三秒兩幀幾乎完全相同），判定為待機卡或串流凍結，不是真實天空`
+    ? `畫面靜止（相隔三秒兩幀完全相同，最大差異 0），判定為待機卡或串流凍結，不是真實天空`
     : `暖色比例 ${metrics.camWarmRatio} 超過 ${SUSPECT_WARM_RATIO}，整片天均勻轉暖不像真實霞光`;
 
   const records = await readJsonArray(VERIFICATION_PATH);
@@ -133,6 +141,8 @@ async function main() {
     ...metrics,
     // 這兩個欄位一律寫入：upsert 是 Object.assign，省略鍵會讓舊值殘留，
     // 重跑後量到正常值卻還掛著 suspect 就麻煩了。undefined 會被 JSON.stringify 丟掉。
+    frameDiffMean: diff ? diff.mean : undefined,
+    frameDiffMax: diff ? diff.max : undefined,
     suspect: suspect || undefined,
     suspectReason: suspect ? reason : undefined,
     noSignal: noSignal || undefined,

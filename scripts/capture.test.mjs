@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   camMetrics, CAMERAS, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor,
-  splitFrames, meanAbsDiff, isStatic, STATIC_FRAME_MAD,
+  splitFrames, frameDiff, isStatic,
 } from './capture.mjs';
 import { findTodayPrediction, upsertVerification, taipeiToday, readJsonArray } from './verification.mjs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -90,10 +90,10 @@ test('splitFrames 依尺寸切出正確幀數', () => {
   assert.equal(b[0], 9);
 });
 
-test('meanAbsDiff 計算平均絕對差；長度不同拋錯', () => {
-  assert.equal(meanAbsDiff(Buffer.from([10, 20]), Buffer.from([10, 20])), 0);
-  assert.equal(meanAbsDiff(Buffer.from([0, 0]), Buffer.from([4, 6])), 5);
-  assert.throws(() => meanAbsDiff(Buffer.from([1]), Buffer.from([1, 2])), /長度不同/);
+test('frameDiff 回傳平均與最大絕對差；長度不同拋錯', () => {
+  assert.deepEqual(frameDiff(Buffer.from([10, 20]), Buffer.from([10, 20])), { mean: 0, max: 0 });
+  assert.deepEqual(frameDiff(Buffer.from([0, 0]), Buffer.from([4, 6])), { mean: 5, max: 6 });
+  assert.throws(() => frameDiff(Buffer.from([1]), Buffer.from([1, 2])), /長度不同/);
 });
 
 test('isStatic：兩幀完全相同判為待機卡', () => {
@@ -101,12 +101,24 @@ test('isStatic：兩幀完全相同判為待機卡', () => {
   assert.equal(isStatic([f, Buffer.from(f)]), true);
 });
 
-test('isStatic：真實鏡頭的雜訊不會被誤判', () => {
-  // 實測烘爐地在霧雨低細節畫面下，相隔三秒兩幀 MAD 仍有 19.9，門檻 1.0 有二十倍餘裕
+// 判準必須是「完全相同」而非平均門檻。實測同一支烘爐地鏡頭：
+// 霧雨天 MAD 19.9、平靜晴晨 MAD 僅 0.18（最大差異仍有 45、6.8% 像素在變）。
+// 平均值跨場景差兩個數量級，任何固定門檻都會誤判其中一端。
+test('isStatic：平靜晴晨的活鏡頭不被誤判（回歸 2026-08-10 的誤判）', () => {
+  const n = 3000;
+  const a = Buffer.alloc(n, 100);
+  const b = Buffer.from(a);
+  b[7] = 145;               // 單一像素變動 45，其餘完全相同
+  const d = frameDiff(a, b);
+  assert.ok(d.mean < 0.02, `平均差極小（${d.mean}），用平均門檻會被判成靜止`);
+  assert.equal(d.max, 45);
+  assert.equal(isStatic([a, b]), false, '只要有一個像素在動就是活鏡頭');
+});
+
+test('isStatic：動態畫面（雨天）當然也不被誤判', () => {
   const a = Buffer.alloc(300, 128);
   const b = Buffer.alloc(300);
-  for (let i = 0; i < b.length; i++) b[i] = 128 + (i % 40) - 20; // 平均絕對差約 10
-  assert.ok(meanAbsDiff(a, b) > STATIC_FRAME_MAD * 5, '合成雜訊應遠高於門檻');
+  for (let i = 0; i < b.length; i++) b[i] = 128 + (i % 40) - 20;
   assert.equal(isStatic([a, b]), false);
 });
 
@@ -114,8 +126,6 @@ test('isStatic：只有一幀時不做判斷（不亂猜）', () => {
   assert.equal(isStatic([Buffer.alloc(300, 5)]), false);
   assert.equal(isStatic([]), false);
 });
-
-test('STATIC_FRAME_MAD 門檻為 1.0', () => assert.equal(STATIC_FRAME_MAD, 1.0));
 
 test('待機卡情境：靜止的夕陽底圖同時觸發無訊號與高暖色，兩道防線都攔得住', () => {
   // 新北觀旅局的待機卡上緣是一張夕陽照，暖色比例極高但畫面完全不動
