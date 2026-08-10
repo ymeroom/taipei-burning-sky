@@ -51,7 +51,7 @@ jobs:
           fi
 
       - name: 單元測試
-        run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
+        run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/locations.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
 
       - name: 等到事件時刻後 8 分鐘
         if: ${{ inputs.dryRun != true }}

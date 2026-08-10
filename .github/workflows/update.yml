@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 20
       - name: 單元測試
-        run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
+        run: node --test scripts/score.test.mjs scripts/geo.test.mjs scripts/locations.test.mjs scripts/update.test.mjs scripts/capture.test.mjs scripts/calibrate.test.mjs
       - name: 計算預報
         run: node scripts/update.mjs "${{ github.event.schedule == '0 7 * * *' && 'sunset-run' || (github.event.schedule == '30 15 * * *' && 'sunrise-run' || 'manual') }}"
       - name: Commit 資料

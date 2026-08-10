@@ -1,9 +1,25 @@
-# 台北火燒雲預報 🌇
+# 火燒雲預報 🌇
 
 每日台北時間 **15:00**（今晚日落）與 **23:30**（明早日出）自動更新，
-預測台北市日出／日落出現火燒雲的機率。
+預測四個地點日出／日落出現火燒雲的機率。
 
 **網站：** https://ymeroom.github.io/taipei-burning-sky/
+
+## 地點
+
+| id | 地點 | 場次 | 驗證鏡頭 |
+|---|---|---|---|
+| `taipei` | 台北市中心 | 日落・日出 | 象山看台北／烘爐地 |
+| `tamsui` | 淡水漁人碼頭 | 日落 | 淡水漁人碼頭（新北旅客） |
+| `gaomei` | 高美濕地 | 日落 | 高美濕地 4K（台中觀光） |
+| `wanggaoliao` | 望高寮 | 日出 | 望高寮 4K（台中觀光） |
+
+每個地點只計算它實際適合的場次——高美濕地是西向夕陽點，替它產生日出分數只是噪音。
+座標、鏡頭 id 全部集中在 `scripts/locations.mjs`，新增地點或補場次改那個檔就好。
+
+不管幾個地點，Open-Meteo 呼叫數都維持 **3 次**（天氣、空品、光路各一次批次）。
+三個批次回應在 `assembleBatches` 一處對位回地點——錯位不會拋錯，只會安靜地把某地的天氣
+算成另一地的分數，所以測試用四地點各餵不同雲量來鎖住這件事。
 
 ## 運作方式
 
@@ -69,14 +85,15 @@ GitHub Actions 依排程執行 `scripts/update.mjs`：
 現在每筆都會記錄 `frameDiffMax`，待機卡下次出現時即可確認第一道防線是否有效。
 
 ```bash
-bash scripts/capture-local.sh sunset    # 日落後約 8 分鐘跑
+bash scripts/capture-local.sh sunset '' gaomei   # 手動抓某地某場次
 node scripts/calibrate.mjs              # 資料夠了再跑
 ```
 
 ### 自動排程（Windows）
 
 `scripts/capture-scheduled.ps1` 是給工作排程器用的包裝：先 `git pull`，從 `docs/data.json`
-讀當天的實際事件時刻，睡到事件後 8 分鐘才抓幀，完成後 commit 並 push，全程寫進 `logs/capture-YYYY-MM.log`。
+讀出該場次**所有地點**的事件時刻並依序處理：睡到各地事件後 8 分鐘才抓幀，全部完成後 commit 並 push。
+單一地點失敗（鏡頭掛掉、錯過窗口）記 log 後繼續下一個，不中斷整批，全程寫進 `logs/capture-YYYY-MM.log`。
 電腦當時關機而錯過窗口 30 分鐘以上時，記一筆 log 後正常結束，不算失敗。
 
 註冊兩個每日工作（時間刻意早於全年最早的事件，等待交給腳本處理）：
