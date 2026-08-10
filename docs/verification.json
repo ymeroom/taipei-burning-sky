@@ -92,5 +92,19 @@
     "camera": "烘爐地",
     "capturedAt": "2026-08-09T21:33:10.929Z",
     "note": "原被舊版靜止偵測（平均差門檻 1.0）誤判為無訊號。縮圖佐證為真實晨景而非待機卡，且 warm=0 與畫面相符，故取消標記納入校準。判準已改為「兩幀完全相同」"
+  },
+  {
+    "date": "2026-08-10",
+    "kind": "sunset",
+    "eventTime": "2026-08-10T18:33:00+08:00",
+    "predictedScore": 18,
+    "camWarmRatio": 0.334,
+    "camBrightRatio": 1,
+    "camBurnIndex": 84,
+    "frameDiffMean": 0.462,
+    "frameDiffMax": 132,
+    "frame": "frames/2026-08-10-sunset.jpg",
+    "camera": "象山看台北",
+    "capturedAt": "2026-08-10T10:41:10.672Z"
   }
 ]
