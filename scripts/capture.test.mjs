@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  camMetrics, CAMERAS, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor,
+  camMetrics, cameraFor, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor,
   splitFrames, frameDiff, isStatic,
 } from './capture.mjs';
 import { findTodayPrediction, upsertVerification, taipeiToday, readJsonArray } from './verification.mjs';
@@ -167,9 +167,9 @@ test('isSuspect 門檻邊界：恰等於門檻不算可疑', () => {
   assert.equal(isSuspect({ camWarmRatio: 0.901 }), true);
 });
 
-test('framePathFor 產生 docs/ 相對路徑', () => {
-  assert.equal(framePathFor('2026-08-09', 'sunrise'), 'frames/2026-08-09-sunrise.jpg');
-  assert.equal(framePathFor('2026-08-09', 'sunset'), 'frames/2026-08-09-sunset.jpg');
+test('framePathFor 產生含地點的 docs/ 相對路徑', () => {
+  assert.equal(framePathFor('2026-08-11', 'gaomei', 'sunset'), 'frames/2026-08-11-gaomei-sunset.jpg');
+  assert.equal(framePathFor('2026-08-11', 'taipei', 'sunrise'), 'frames/2026-08-11-taipei-sunrise.jpg');
 });
 
 test('camMetrics 全暖天空的 warmRatio 會落在可疑範圍', () => {
@@ -178,11 +178,17 @@ test('camMetrics 全暖天空的 warmRatio 會落在可疑範圍', () => {
   assert.equal(isSuspect(m), true, '滿版暖色應被標記，即使 burnIndex 是 100');
 });
 
-test('CAMERAS 兩場都有影片 id 與名稱', () => {
-  for (const kind of ['sunset', 'sunrise']) {
-    assert.match(CAMERAS[kind].id, /^[\w-]{11}$/);
-    assert.ok(CAMERAS[kind].name.length > 0);
-  }
+test('cameraFor 取得該地該場次的鏡頭', () => {
+  assert.equal(cameraFor('taipei', 'sunset').cameraName, '象山看台北');
+  assert.equal(cameraFor('taipei', 'sunrise').cameraName, '烘爐地');
+  assert.equal(cameraFor('gaomei', 'sunset').camera, 'fjhg3gAnMFg');
+  assert.equal(cameraFor('wanggaoliao', 'sunrise').cameraName, '望高寮');
+});
+
+test('cameraFor 對未知地點或不存在的場次大聲失敗', () => {
+  assert.throws(() => cameraFor('nope', 'sunset'), /locationById: 未知地點 nope/);
+  assert.throws(() => cameraFor('gaomei', 'sunrise'), /cameraFor: gaomei 沒有 sunrise 場次/);
+  assert.throws(() => cameraFor('wanggaoliao', 'sunset'), /cameraFor: wanggaoliao 沒有 sunset 場次/);
 });
 
 // ---- verification.mjs 共用邏輯 ----
@@ -226,6 +232,56 @@ test('upsertVerification：重跑量到正常值時，舊的 suspect 旗標會�
   assert.equal(after.camBurnIndex, 12);
   assert.equal('suspect' in after, false, 'suspect 應被清掉而非殘留');
   assert.equal('suspectReason' in after, false);
+});
+
+// ---- 多地點：三鍵與新舊 history 格式 ----
+
+const HISTORY_MULTI = [
+  {
+    ranAt: '2026-08-10T15:44:59.586Z', trigger: 'sunset-run',
+    locations: {
+      taipei: { sunsetScore: 31, sunsetTime: '2026-08-11T18:32:00+08:00', sunsetFactors: { canvas: 12 } },
+      gaomei: { sunsetScore: 39, sunsetTime: '2026-08-11T18:35:00+08:00', sunsetFactors: { canvas: 40 } },
+      wanggaoliao: { sunriseScore: 12, sunriseTime: '2026-08-11T05:30:00+08:00' },
+    },
+  },
+];
+
+test('findTodayPrediction 從新格式 history 取出各地點自己的預測', () => {
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunset', '2026-08-11', 'taipei').predictedScore, 31);
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunset', '2026-08-11', 'gaomei').predictedScore, 39);
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunset', '2026-08-11', 'gaomei').factors.canvas, 40);
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunrise', '2026-08-11', 'wanggaoliao').predictedScore, 12);
+});
+
+test('findTodayPrediction 對沒有該場次或該地點的查詢回 null', () => {
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunrise', '2026-08-11', 'gaomei'), null);
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunset', '2026-08-11', 'tamsui'), null);
+  assert.equal(findTodayPrediction(HISTORY_MULTI, 'sunset', '2026-08-11', 'nope'), null);
+});
+
+test('findTodayPrediction 相容舊格式（欄位在頂層）並視為台北', () => {
+  assert.equal(findTodayPrediction(HISTORY, 'sunset', '2026-08-06', 'taipei').predictedScore, 50);
+  assert.equal(findTodayPrediction(HISTORY, 'sunset', '2026-08-06').predictedScore, 50, '不帶地點時預設台北');
+  assert.equal(findTodayPrediction(HISTORY, 'sunset', '2026-08-06', 'gaomei'), null, '舊格式沒有其他地點的資料');
+});
+
+test('upsertVerification：同日同場次不同地點是兩筆', () => {
+  const records = [];
+  upsertVerification(records, { date: '2026-08-11', kind: 'sunset', location: 'taipei', camBurnIndex: 10 });
+  upsertVerification(records, { date: '2026-08-11', kind: 'sunset', location: 'gaomei', camBurnIndex: 80 });
+  assert.equal(records.length, 2);
+  upsertVerification(records, { date: '2026-08-11', kind: 'sunset', location: 'gaomei', camBurnIndex: 85 });
+  assert.equal(records.length, 2, '同三鍵應合併');
+  assert.equal(records.find(r => r.location === 'gaomei').camBurnIndex, 85);
+  assert.equal(records.find(r => r.location === 'taipei').camBurnIndex, 10, '不該被別的地點覆蓋');
+});
+
+test('upsertVerification：缺 location 的舊紀錄與 taipei 視為同一筆', () => {
+  const records = [{ date: '2026-08-09', kind: 'sunset', camBurnIndex: 0 }];
+  upsertVerification(records, { date: '2026-08-09', kind: 'sunset', location: 'taipei', camBurnIndex: 5 });
+  assert.equal(records.length, 1);
+  assert.equal(records[0].camBurnIndex, 5);
 });
 
 test('taipeiToday 以台北時區換日', () => {
