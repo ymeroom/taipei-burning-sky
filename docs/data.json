@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-09T15:54:50.433Z",
-  "trigger": "sunrise-run",
+  "generatedAt": "2026-08-10T08:24:02.361Z",
+  "trigger": "sunset-run",
   "next": {
     "sunrise": {
-      "eventTime": "2026-08-10T05:25:00+08:00",
-      "score": 41,
+      "eventTime": "2026-08-11T05:26:00+08:00",
+      "score": 33,
       "level": "普通",
       "factors": [
         {
@@ -18,23 +18,23 @@
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 11%",
-          "score": 21,
+          "value": "低雲 29%",
+          "score": 15,
           "max": 25,
           "reason": "少量低雲，稍有遮擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 93%・能見度 17km",
-          "score": 1,
+          "value": "濕度 99%・能見度 2km",
+          "score": 0,
           "max": 15,
           "reason": "空氣又濕又濁，色彩會很淡"
         },
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.13",
+          "value": "AOD 0.29",
           "score": 10,
           "max": 10,
           "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -42,43 +42,43 @@
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 11%",
-          "score": 9,
+          "value": "降雨機率 15%",
+          "score": 8,
           "max": 10,
           "reason": "有些降雨機率，可能攪局"
         }
       ],
       "lightPath": {
         "azimuth": 72,
-        "pathLow": 17,
-        "centerLow": 3,
+        "pathLow": 42,
+        "centerLow": 9,
         "points": [
           {
             "km": 40,
-            "low": 11
+            "low": 34
           },
           {
             "km": 90,
-            "low": 24
+            "low": 8
           },
           {
             "km": 150,
-            "low": 22
+            "low": 40
           },
           {
             "km": 220,
-            "low": 11
+            "low": 99
           },
           {
             "km": 300,
-            "low": 10
+            "low": 72
           }
         ]
       }
     },
     "sunset": {
       "eventTime": "2026-08-10T18:33:00+08:00",
-      "score": 24,
+      "score": 18,
       "level": "別期待",
       "factors": [
         {
@@ -92,15 +92,15 @@
         {
           "key": "lowCloud",
           "name": "低雲阻擋",
-          "value": "低雲 7%",
-          "score": 22,
+          "value": "低雲 22%",
+          "score": 17,
           "max": 25,
           "reason": "少量低雲，稍有遮擋"
         },
         {
           "key": "clarity",
           "name": "空氣通透度",
-          "value": "濕度 91%・能見度 5km",
+          "value": "濕度 97%・能見度 4km",
           "score": 0,
           "max": 15,
           "reason": "空氣又濕又濁，色彩會很淡"
@@ -108,15 +108,15 @@
         {
           "key": "aerosol",
           "name": "氣溶膠",
-          "value": "AOD 0.63",
-          "score": 2,
+          "value": "AOD 0.67",
+          "score": 1,
           "max": 10,
           "reason": "空氣偏髒，紅光會被壓暗"
         },
         {
           "key": "rain",
           "name": "降雨干擾",
-          "value": "降雨機率 94%",
+          "value": "降雨機率 95%",
           "score": 0,
           "max": 10,
           "reason": "降雨機率高，大概率泡湯"
@@ -124,28 +124,28 @@
       ],
       "lightPath": {
         "azimuth": 288,
-        "pathLow": 2,
-        "centerLow": 14,
+        "pathLow": 9,
+        "centerLow": 41,
         "points": [
           {
             "km": 40,
-            "low": 3
+            "low": 8
           },
           {
             "km": 90,
-            "low": 1
+            "low": 0
           },
           {
             "km": 150,
-            "low": 2
+            "low": 14
           },
           {
             "km": 220,
-            "low": 3
+            "low": 17
           },
           {
             "km": 300,
-            "low": 5
+            "low": 13
           }
         ]
       }
@@ -153,36 +153,36 @@
   },
   "outlook": [
     {
-      "date": "2026-08-10",
-      "sunrise": {
-        "time": "2026-08-10T05:25:00+08:00",
-        "score": 41
-      },
-      "sunset": {
-        "time": "2026-08-10T18:33:00+08:00",
-        "score": 24
-      }
-    },
-    {
       "date": "2026-08-11",
       "sunrise": {
         "time": "2026-08-11T05:26:00+08:00",
-        "score": 31
+        "score": 33
       },
       "sunset": {
         "time": "2026-08-11T18:32:00+08:00",
-        "score": 31
+        "score": 33
       }
     },
     {
       "date": "2026-08-12",
       "sunrise": {
         "time": "2026-08-12T05:26:00+08:00",
-        "score": 40
+        "score": 36
       },
       "sunset": {
         "time": "2026-08-12T18:31:00+08:00",
-        "score": 27
+        "score": 29
+      }
+    },
+    {
+      "date": "2026-08-13",
+      "sunrise": {
+        "time": "2026-08-13T05:26:00+08:00",
+        "score": 39
+      },
+      "sunset": {
+        "time": "2026-08-13T18:30:00+08:00",
+        "score": 56
       }
     }
   ]
