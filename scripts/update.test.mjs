@@ -5,8 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   fetchJsonWithRetry, conditionsAt, buildData, readHistory,
-  PATH_DISTANCES, PATH_WEIGHTS, weightedPathLow, effectiveLow, buildPathPoints, parsePathBatch, factorScores,
+  PATH_DISTANCES, PATH_WEIGHTS, weightedPathLow, effectiveLow, buildPathPoints, parseBatch, factorScores,
+  buildPathPlan, assembleBatches, nextEventsFor, historyEntry,
 } from './update.mjs';
+import { LOCATIONS, locationById } from './locations.mjs';
 
 const ok = data => ({ ok: true, json: async () => data });
 // 失敗回應也給 json()：若實作漏掉 res.ok 檢查而逕自解析 body，測試才會抓得到
@@ -79,14 +81,6 @@ const makeAir = (overrides = {}) => ({
 
 const epochOf = iso => new Date(`${iso}:00+08:00`).getTime();
 
-// 光路假資料：5 個取樣點、每點恆定低雲
-const makePathSamples = (low = 10) =>
-  Array.from({ length: 5 }, () => ({ hourly: { time: hourlyTimes(), cloud_cover_low: fill(low) } }));
-const makePaths = (low = 10) => ({
-  sunset: { azimuth: 288, samples: makePathSamples(low) },
-  sunrise: { azimuth: 72, samples: makePathSamples(low) },
-});
-
 // ---- 光路取樣 ----
 
 test('光路權重總和恰為 1.0', () => {
@@ -108,7 +102,7 @@ test('effectiveLow(25, 13) = 0.6×25 + 0.4×13 = 20.2', () => {
 });
 
 test('buildPathPoints 八月日落：方位角在西北西、取樣點一路向西', () => {
-  const { azimuth, points } = buildPathPoints('2026-08-06T18:35');
+  const { azimuth, points } = buildPathPoints('2026-08-06T18:35', 25.04, 121.56);
   assert.ok(azimuth > 280 && azimuth < 295, `八月日落方位角 ${azimuth.toFixed(1)}`);
   assert.equal(points.length, 5);
   assert.deepEqual(points.map(p => p.km), PATH_DISTANCES);
@@ -118,9 +112,10 @@ test('buildPathPoints 八月日落：方位角在西北西、取樣點一路向�
   assert.ok(points[4].lon < 119, `300km 點應進台灣海峽（lon=${points[4].lon.toFixed(2)}）`);
 });
 
-test('parsePathBatch 點數不符拋錯、相符原樣回傳', () => {
-  assert.throws(() => parsePathBatch([{}, {}, {}], 5), /parsePathBatch: 批次回應 3 點/);
-  assert.equal(parsePathBatch([1, 2, 3], 3).length, 3);
+test('parseBatch 筆數不符拋錯（含 label）、相符原樣回傳、單點物件自動包成陣列', () => {
+  assert.throws(() => parseBatch([{}, {}, {}], 5, '光路'), /parseBatch\(光路\): 批次回應 3 筆，應為 5 筆/);
+  assert.equal(parseBatch([1, 2, 3], 3, '天氣').length, 3);
+  assert.deepEqual(parseBatch({ a: 1 }, 1, '天氣'), [{ a: 1 }]);
 });
 
 test('factorScores 把 factors 陣列轉成 key→score 物件', () => {
@@ -178,62 +173,213 @@ for (const [field, hourlyKey] of Object.entries(FIELD_TO_HOURLY_KEY)) {
   });
 }
 
-test('buildData 在缺值時整批失敗，不回傳半套資料', () => {
-  const air = makeAir({ aerosol_optical_depth: fill(null) });
-  assert.throws(
-    () => buildData(makeForecast(), air, makePaths(), 'manual', epochOf('2026-08-05T15:00')),
-    /conditionsAt: aod/,
-  );
+// ---- 多地點：批次對位是本次最高風險處 ----
+
+// 每個地點餵「明顯不同」的天氣，錯位就會被抓到
+const LOC_CLOUD = { taipei: 40, tamsui: 0, gaomei: 100, wanggaoliao: 40 };
+
+const makeWeatherByLoc = () => Object.fromEntries(LOCATIONS.map(l => [
+  l.id,
+  makeForecast({ cloud_cover_mid: fill(LOC_CLOUD[l.id]), cloud_cover_high: fill(0) }),
+]));
+
+// 依 buildPathPlan 的索引順序造出對應筆數的光路回應，每個地點的點都帶自己的低雲值
+function makePathArr(plan, lowByLoc = {}) {
+  const arr = new Array(plan.points.length);
+  for (const [key, { start }] of plan.index) {
+    const locId = key.split(':')[0];
+    for (let i = 0; i < PATH_DISTANCES.length; i++) {
+      arr[start + i] = { hourly: { time: hourlyTimes(), cloud_cover_low: fill(lowByLoc[locId] ?? 10) } };
+    }
+  }
+  return arr;
+}
+
+function makeAssembled(now, lowByLoc = {}) {
+  const weatherByLoc = makeWeatherByLoc();
+  const plan = buildPathPlan(weatherByLoc, now);
+  const weatherArr = LOCATIONS.map(l => weatherByLoc[l.id]);
+  const airArr = LOCATIONS.map(() => makeAir());
+  return { assembled: assembleBatches(weatherArr, airArr, makePathArr(plan, lowByLoc), plan), plan };
+}
+
+test('nextEventsFor 只回傳該地宣告的場次', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const f = makeForecast();
+  assert.deepEqual(Object.keys(nextEventsFor(f, locationById('taipei'), now)).sort(), ['sunrise', 'sunset']);
+  assert.deepEqual(Object.keys(nextEventsFor(f, locationById('gaomei'), now)), ['sunset']);
+  assert.deepEqual(Object.keys(nextEventsFor(f, locationById('wanggaoliao'), now)), ['sunrise']);
 });
 
-test('buildData 組出下一場日出日落與 3 天趨勢', () => {
+test('nextEventsFor 在預報範圍內找不到宣告場次時拋錯', () => {
+  const past = makeForecast();
+  const now = epochOf('2026-08-10T23:00'); // 晚於所有假資料日期
+  assert.throws(() => nextEventsFor(past, locationById('gaomei'), now), /gaomei 的預報範圍內找不到下一場 sunset/);
+});
+
+test('buildPathPlan：25 個光路點，索引依 LOCATIONS 順序排列', () => {
   const now = epochOf('2026-08-05T15:00');
-  const data = buildData(makeForecast(), makeAir(), makePaths(), 'sunset-run', now);
+  const plan = buildPathPlan(makeWeatherByLoc(), now);
+  assert.equal(plan.points.length, 25, '台北 2 場×5 + 其餘 3 地各 5');
+  assert.equal(plan.index.get('taipei:sunset').start, 0);
+  assert.equal(plan.index.get('taipei:sunrise').start, 5);
+  assert.equal(plan.index.get('tamsui:sunset').start, 10);
+  assert.equal(plan.index.get('gaomei:sunset').start, 15);
+  assert.equal(plan.index.get('wanggaoliao:sunrise').start, 20);
+  assert.equal(plan.index.size, 5);
+});
+
+test('buildPathPlan：各地方位角依自己的緯經度算，不共用台北的', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const plan = buildPathPlan(makeWeatherByLoc(), now);
+  const taipei = plan.index.get('taipei:sunset').azimuth;
+  const gaomei = plan.index.get('gaomei:sunset').azimuth;
+  assert.ok(Math.abs(taipei - gaomei) > 0.05, `兩地方位角不該完全相同（${taipei} vs ${gaomei}）`);
+  for (const key of ['taipei:sunset', 'tamsui:sunset', 'gaomei:sunset']) {
+    const az = plan.index.get(key).azimuth;
+    assert.ok(az > 280 && az < 296, `${key} 八月日落方位角應在西北西，實得 ${az.toFixed(1)}`);
+  }
+});
+
+test('assembleBatches：每個地點拿到自己那一筆天氣與空品', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const weatherByLoc = makeWeatherByLoc();
+  const plan = buildPathPlan(weatherByLoc, now);
+  const weatherArr = LOCATIONS.map(l => weatherByLoc[l.id]);
+  const airArr = LOCATIONS.map((l, i) => makeAir({ aerosol_optical_depth: fill(0.1 * (i + 1)) }));
+  const a = assembleBatches(weatherArr, airArr, makePathArr(plan), plan);
+
+  for (const l of LOCATIONS) {
+    assert.equal(a.weather[l.id].hourly.cloud_cover_mid[0], LOC_CLOUD[l.id], `${l.id} 天氣對錯地點了`);
+  }
+  assert.ok(Math.abs(a.air.taipei.hourly.aerosol_optical_depth[0] - 0.1) < 1e-9);
+  assert.ok(Math.abs(a.air.wanggaoliao.hourly.aerosol_optical_depth[0] - 0.4) < 1e-9);
+  assert.equal(a.paths['gaomei:sunset'].samples.length, 5);
+});
+
+test('assembleBatches：光路切片切給對的地點（錯位就會拿到別人的低雲）', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const weatherByLoc = makeWeatherByLoc();
+  const plan = buildPathPlan(weatherByLoc, now);
+  const lowByLoc = { taipei: 5, tamsui: 25, gaomei: 60, wanggaoliao: 80 };
+  const a = assembleBatches(
+    LOCATIONS.map(l => weatherByLoc[l.id]), LOCATIONS.map(() => makeAir()),
+    makePathArr(plan, lowByLoc), plan);
+
+  for (const [key, expected] of Object.entries({
+    'taipei:sunset': 5, 'taipei:sunrise': 5, 'tamsui:sunset': 25,
+    'gaomei:sunset': 60, 'wanggaoliao:sunrise': 80,
+  })) {
+    assert.equal(a.paths[key].samples[0].hourly.cloud_cover_low[0], expected, `${key} 光路切錯`);
+  }
+});
+
+test('buildData：每個地點只產生自己宣告的場次', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now);
+  const data = buildData(assembled, 'sunset-run', now);
 
   assert.equal(data.trigger, 'sunset-run');
   assert.equal(data.generatedAt, new Date(now).toISOString());
+  assert.deepEqual(data.locations.map(l => l.id), ['taipei', 'tamsui', 'gaomei', 'wanggaoliao']);
 
-  // 15:00 時：下一場日落是今天傍晚，下一場日出是明天清晨
-  assert.equal(data.next.sunset.eventTime, `2026-08-05T${SUNSET}:00+08:00`);
-  assert.equal(data.next.sunrise.eventTime, `2026-08-06T${SUNRISE}:00+08:00`);
-  for (const event of [data.next.sunset, data.next.sunrise]) {
-    assert.equal(event.factors.length, 5);
-    assert.ok(Number.isInteger(event.score) && event.score >= 0 && event.score <= 100);
-    assert.equal(typeof event.level, 'string');
-  }
-
-  // lightPath 明細：光路 25、市中心 10 → 有效低雲 0.6×25+0.4×10 = 19（因子吃 19 而非 10）
-  const withPath = buildData(makeForecast(), makeAir(), makePaths(25), 'sunset-run', now);
-  for (const event of [withPath.next.sunset, withPath.next.sunrise]) {
-    const lp = event.lightPath;
-    assert.ok(lp, '應有 lightPath 欄位');
-    assert.equal(lp.pathLow, 25);
-    assert.equal(lp.centerLow, 10);
-    assert.equal(lp.points.length, 5);
-    for (const v of [lp.azimuth, lp.pathLow, lp.centerLow, ...lp.points.map(pt => pt.low)]) {
-      assert.ok(Number.isInteger(v), `lightPath 數值應為整數，實得 ${v}`);
-    }
-  }
-  const lowFactor25 = withPath.next.sunset.factors.find(f => f.key === 'lowCloud');
-  const lowFactor10 = data.next.sunset.factors.find(f => f.key === 'lowCloud');
-  assert.ok(lowFactor25.score < lowFactor10.score, '光路低雲較多時低雲因子得分應較低');
-
-  assert.equal(data.outlook.length, 3);
-  assert.deepEqual(data.outlook.map(d => d.date), ['2026-08-06', '2026-08-07', '2026-08-08']);
-  assert.equal(data.outlook[0].sunrise.time, `2026-08-06T${SUNRISE}:00+08:00`);
-  assert.equal(data.outlook[0].sunset.time, `2026-08-06T${SUNSET}:00+08:00`);
-  assert.ok(Number.isInteger(data.outlook[0].sunset.score));
+  const byId = Object.fromEntries(data.locations.map(l => [l.id, l]));
+  assert.deepEqual(Object.keys(byId.taipei.events).sort(), ['sunrise', 'sunset']);
+  assert.deepEqual(Object.keys(byId.tamsui.events), ['sunset']);
+  assert.deepEqual(Object.keys(byId.gaomei.events), ['sunset']);
+  assert.deepEqual(Object.keys(byId.wanggaoliao.events), ['sunrise']);
+  assert.equal(byId.taipei.name, '台北市中心');
+  assert.equal(byId.gaomei.name, '高美濕地');
 });
 
-// 鎖住「事件時刻以 +08:00 解析」：19:00 已過今日日落（18:35 台北時間），
-// 下一場日落必須是明天。若把 toEpoch 的時區換成 +00:00，今日日落會被誤判為未來而挑錯天。
-test('buildData 在今日日落之後執行，下一場日落是明天（事件時刻以 +08:00 解析）', () => {
-  const now = epochOf('2026-08-05T19:00');
-  const data = buildData(makeForecast(), makeAir(), makePaths(), 'sunset-run', now);
+// 這條是整個多地點改動的核心防線：分數必須跟著自己地點的天氣走
+test('buildData：分數對應到各自地點的天氣，沒有錯位', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now);
+  const byId = Object.fromEntries(buildData(assembled, 'sunset-run', now).locations.map(l => [l.id, l]));
 
-  assert.equal(data.next.sunset.eventTime, `2026-08-06T${SUNSET}:00+08:00`);
-  assert.equal(data.next.sunrise.eventTime, `2026-08-06T${SUNRISE}:00+08:00`);
-  assert.deepEqual(data.outlook.map(d => d.date), ['2026-08-06', '2026-08-07', '2026-08-08']);
+  const canvasOf = (id, kind) => byId[id].events[kind].factors.find(f => f.key === 'canvas');
+
+  // 台北中高雲 40%（落在 25-60 滿分區間）
+  assert.equal(canvasOf('taipei', 'sunset').score, 40);
+  assert.equal(canvasOf('taipei', 'sunset').value, '中高雲合計 40%');
+  // 淡水 0%（無雲可燒）
+  assert.equal(canvasOf('tamsui', 'sunset').score, 0);
+  assert.equal(canvasOf('tamsui', 'sunset').value, '中高雲合計 0%');
+  // 高美 100%（全陰）
+  assert.equal(canvasOf('gaomei', 'sunset').score, 0);
+  assert.equal(canvasOf('gaomei', 'sunset').value, '中高雲合計 100%');
+  // 望高寮 40%，且是日出場
+  assert.equal(canvasOf('wanggaoliao', 'sunrise').score, 40);
+
+  // 分數整體也要不同，證明不是巧合
+  assert.notEqual(byId.taipei.events.sunset.score, byId.gaomei.events.sunset.score);
+});
+
+test('buildData：lightPath 綁對地點，方位角與光路低雲各自獨立', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now, { taipei: 5, tamsui: 25, gaomei: 60, wanggaoliao: 80 });
+  const byId = Object.fromEntries(buildData(assembled, 'sunset-run', now).locations.map(l => [l.id, l]));
+
+  assert.equal(byId.taipei.events.sunset.lightPath.pathLow, 5);
+  assert.equal(byId.tamsui.events.sunset.lightPath.pathLow, 25);
+  assert.equal(byId.gaomei.events.sunset.lightPath.pathLow, 60);
+  assert.equal(byId.wanggaoliao.events.sunrise.lightPath.pathLow, 80);
+
+  for (const l of Object.values(byId)) {
+    for (const ev of Object.values(l.events)) {
+      assert.equal(ev.lightPath.points.length, 5);
+      assert.ok(Number.isInteger(ev.lightPath.azimuth));
+    }
+  }
+  // 光路低雲多的地點，低雲因子得分應較低
+  const low = id => byId[id].events[id === 'wanggaoliao' ? 'sunrise' : 'sunset'].factors.find(f => f.key === 'lowCloud').score;
+  assert.ok(low('taipei') > low('gaomei'), '台北光路較乾淨，低雲因子應高於高美');
+});
+
+test('buildData：outlook 只列該地宣告的場次，長度 3', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now);
+  const byId = Object.fromEntries(buildData(assembled, 'sunset-run', now).locations.map(l => [l.id, l]));
+
+  for (const l of Object.values(byId)) assert.equal(l.outlook.length, 3, `${l.id} outlook 長度`);
+  assert.deepEqual(Object.keys(byId.gaomei.outlook[0]).sort(), ['date', 'sunset']);
+  assert.deepEqual(Object.keys(byId.wanggaoliao.outlook[0]).sort(), ['date', 'sunrise']);
+  assert.deepEqual(Object.keys(byId.taipei.outlook[0]).sort(), ['date', 'sunrise', 'sunset']);
+  assert.ok(Number.isInteger(byId.gaomei.outlook[0].sunset.score));
+});
+
+test('buildData 在缺值時整批失敗，不回傳半套資料', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now);
+  assembled.air.gaomei = makeAir({ aerosol_optical_depth: fill(null) });
+  assert.throws(() => buildData(assembled, 'manual', now), /conditionsAt: aod/);
+});
+
+// 鎖住「事件時刻以 +08:00 解析」：19:00 已過今日日落，下一場日落必須是明天
+test('buildData 在今日日落之後執行，下一場日落是明天（+08:00 解析）', () => {
+  const now = epochOf('2026-08-05T19:00');
+  const { assembled } = makeAssembled(now);
+  const byId = Object.fromEntries(buildData(assembled, 'sunset-run', now).locations.map(l => [l.id, l]));
+  assert.equal(byId.taipei.events.sunset.eventTime, `2026-08-06T${SUNSET}:00+08:00`);
+  assert.equal(byId.taipei.events.sunrise.eventTime, `2026-08-06T${SUNRISE}:00+08:00`);
+});
+
+test('historyEntry：以地點為索引，只記宣告的場次與五因子', () => {
+  const now = epochOf('2026-08-05T15:00');
+  const { assembled } = makeAssembled(now);
+  const data = buildData(assembled, 'sunset-run', now);
+  const entry = historyEntry(data, 'sunset-run');
+
+  assert.equal(entry.ranAt, data.generatedAt);
+  assert.equal(entry.trigger, 'sunset-run');
+  assert.deepEqual(Object.keys(entry.locations).sort(), ['gaomei', 'taipei', 'tamsui', 'wanggaoliao']);
+  assert.deepEqual(Object.keys(entry.locations.gaomei).sort(), ['sunsetFactors', 'sunsetScore', 'sunsetTime']);
+  assert.deepEqual(Object.keys(entry.locations.wanggaoliao).sort(), ['sunriseFactors', 'sunriseScore', 'sunriseTime']);
+  assert.equal(Object.keys(entry.locations.taipei).length, 6, '台北兩場各三個欄位');
+  assert.deepEqual(Object.keys(entry.locations.taipei.sunsetFactors).sort(),
+    ['aerosol', 'canvas', 'clarity', 'lowCloud', 'rain']);
+  assert.equal(entry.locations.taipei.sunsetScore, data.locations[0].events.sunset.score);
 });
 
 // ---- history.json 讀取：只容忍「檔案不存在」，其餘一律大聲失敗 ----

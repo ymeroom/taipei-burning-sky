@@ -1,22 +1,26 @@
-// 地面攝影機驗證：讀 ffmpeg 抓下來的一幀 raw RGB，量天空區域的暖色比例 → camBurnIndex
-// 用法：node scripts/capture.mjs sunset|sunrise <frame.raw> <width> <height> [YYYY-MM-DD]
+// 地面攝影機驗證：讀 ffmpeg 抓下來的 raw RGB 影格，量天空區域的暖色比例 → camBurnIndex
+// 用法：node scripts/capture.mjs sunset|sunrise <frame.raw> <w> <h> [YYYY-MM-DD] [thumb.jpg] [locationId]
 //
 // 為什麼用地面相機而不是衛星：2026-08-06 實測 NICT 向日葵真彩產品在暮光時段幾乎全黑
 // （日落前 10 分視窗最亮像素僅 (60,47,40)，日落當下 (24,13,9)），它是白天可見光合成，
 // 拍不到「燒起來」那一刻。地面相機看到的正是肉眼看到的。
 //
-// 攝影機：日落＝象山看台北 4K（台北觀光官方）、日出＝烘爐地即時影像（新北觀光官方）
+// 各地鏡頭一律查 locations.mjs，本檔不再自帶鏡頭清單。
 import { pathToFileURL } from 'node:url';
 import { readFile, copyFile, mkdir } from 'node:fs/promises';
 import { readJsonArray, writeJsonArray, upsertVerification, findTodayPrediction, taipeiToday, VERIFICATION_PATH }
   from './verification.mjs';
+import { locationById, DEFAULT_LOCATION } from './locations.mjs';
 
 const HISTORY_PATH = new URL('../docs/history.json', import.meta.url);
 
-export const CAMERAS = {
-  sunset: { id: 'z_fY1pj1VBw', name: '象山看台北' },
-  sunrise: { id: 'xxMRjVwCQ3o', name: '烘爐地' },
-};
+// 取該地該場次的鏡頭；地點或場次不存在都要大聲失敗，不要默默抓錯鏡頭
+export function cameraFor(locationId, kind) {
+  const loc = locationById(locationId);
+  const cam = loc.events[kind];
+  if (!cam) throw new Error(`cameraFor: ${locationId} 沒有 ${kind} 場次`);
+  return cam;
+}
 
 // 天空只佔畫面頂端一小條（象山鏡頭是 101 特寫），且日落時鏡頭會轉向、構圖會變，
 // 因此取整個上緣 25% 而非固定小窗——寧可混入一點遠景霧霾，也不要因轉向而完全取錯區域。
@@ -93,12 +97,13 @@ export function isSuspect(metrics) {
   return metrics.camWarmRatio > SUSPECT_WARM_RATIO;
 }
 
-// 縮圖存成 docs/frames/<date>-<kind>.jpg，紀錄裡存相對路徑（相對於 docs/，前端可直接連）
-export const framePathFor = (date, kind) => `frames/${date}-${kind}.jpg`;
+// 縮圖存成 docs/frames/<date>-<location>-<kind>.jpg，紀錄裡存相對路徑（相對於 docs/，前端可直接連）
+export const framePathFor = (date, location, kind) => `frames/${date}-${location}-${kind}.jpg`;
 
 async function main() {
-  const [kind, framePath, widthArg, heightArg, dateArg, thumbArg] = process.argv.slice(2);
-  if (!CAMERAS[kind]) throw new Error(`用法：node scripts/capture.mjs sunset|sunrise <frame.raw> <w> <h> [date] [thumb.jpg]（實得 ${kind}）`);
+  const [kind, framePath, widthArg, heightArg, dateArg, thumbArg, locArg] = process.argv.slice(2);
+  const locationId = locArg || DEFAULT_LOCATION;
+  const camera = cameraFor(locationId, kind); // 地點或場次不對就在這裡失敗
   const width = Number(widthArg), height = Number(heightArg);
   if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
     throw new Error(`capture: 影格尺寸不合法（${widthArg}×${heightArg}）`);
@@ -106,8 +111,8 @@ async function main() {
   const date = dateArg || taipeiToday();
 
   const history = await readJsonArray(HISTORY_PATH);
-  const pred = findTodayPrediction(history, kind, date);
-  if (!pred) throw new Error(`capture: history 裡找不到 ${date} 的 ${kind} 預測，無可驗證對象`);
+  const pred = findTodayPrediction(history, kind, date, locationId);
+  if (!pred) throw new Error(`capture: history 裡找不到 ${date} ${locationId} 的 ${kind} 預測，無可驗證對象`);
 
   const raw = await readFile(framePath);
   const frames = splitFrames(raw, width, height);
@@ -122,7 +127,7 @@ async function main() {
   // 留一張縮圖，日後出現可疑數值時才有畫面可查——2026-08-09 那筆就是因為沒存畫面而無從查證
   let framePathRel;
   if (thumbArg) {
-    framePathRel = framePathFor(date, kind);
+    framePathRel = framePathFor(date, locationId, kind);
     const dest = new URL(`../docs/${framePathRel}`, import.meta.url);
     await mkdir(new URL('../docs/frames/', import.meta.url), { recursive: true });
     await copyFile(thumbArg, dest);
@@ -135,7 +140,7 @@ async function main() {
 
   const records = await readJsonArray(VERIFICATION_PATH);
   upsertVerification(records, {
-    date, kind,
+    date, kind, location: locationId,
     eventTime: pred.eventTime,
     predictedScore: pred.predictedScore,
     ...metrics,
@@ -147,13 +152,13 @@ async function main() {
     suspectReason: suspect ? reason : undefined,
     noSignal: noSignal || undefined,
     ...(framePathRel ? { frame: framePathRel } : {}),
-    camera: CAMERAS[kind].name,
+    camera: camera.cameraName,
     capturedAt: new Date().toISOString(),
   });
   await writeJsonArray(VERIFICATION_PATH, records);
   const flag = noSignal ? ' ⚠ 無訊號（待機卡／凍結），不列入校準'
     : suspect ? ' ⚠ 標記為可疑，不列入校準' : '';
-  console.log(`OK ${date} ${kind} predicted=${pred.predictedScore} camBurnIndex=${metrics.camBurnIndex} warm=${metrics.camWarmRatio} bright=${metrics.camBrightRatio}${flag}`);
+  console.log(`OK ${date} ${locationId} ${kind} predicted=${pred.predictedScore} camBurnIndex=${metrics.camBurnIndex} warm=${metrics.camWarmRatio} bright=${metrics.camBrightRatio}${flag}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

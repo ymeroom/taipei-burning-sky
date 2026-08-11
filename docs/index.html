@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>台北火燒雲預報</title>
+<title>火燒雲預報｜台北・新北・台中</title>
 <style>
   :root {
     --lv0: #55607a; --lv1: #8899bb; --lv2: #ff9f43; --lv3: #ff5e3a;
@@ -19,6 +19,13 @@
   h1 { font-size: 1.35rem; letter-spacing: .12em; text-align: center; padding: 8px 0 2px; }
   .sub { text-align: center; color: var(--dim); font-size: .8rem; margin-bottom: 6px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; backdrop-filter: blur(6px); }
+  .locs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 4px; }
+  .locs button {
+    background: var(--card); color: var(--dim); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 16px; font-size: .85rem; cursor: pointer;
+    margin-top: 0; font-family: inherit;
+  }
+  .locs button[aria-pressed="true"] { color: #101425; background: #cfd6e6; border-color: #cfd6e6; font-weight: 600; }
   .stale { background: #7a2e2e; border-color: #a54; text-align: center; font-size: .9rem; padding: 10px; border-radius: 12px; }
   .main-card { text-align: center; padding: 26px 18px; }
   .kind { font-size: 1rem; color: var(--dim); letter-spacing: .3em; }
@@ -54,18 +61,19 @@
 </head>
 <body>
 <main>
-  <h1>台北火燒雲預報</h1>
-  <div class="sub">每日 15:00・23:30 自動更新｜台北市</div>
+  <h1>火燒雲預報</h1>
+  <div class="sub">每日 15:00・23:30 自動更新</div>
+  <div id="locs" class="locs"></div>
   <div id="stale" class="stale" hidden></div>
   <div id="error" class="card"></div>
   <div id="app" hidden>
     <div style="display:grid;gap:14px">
       <section id="main-card" class="card main-card"></section>
-      <section id="second-card" class="card second"></section>
+      <section id="second-card" class="card second" hidden></section>
       <section class="card"><h2>因子拆解（主要事件）</h2><div id="factors"></div></section>
       <section class="card"><h2>未來趨勢</h2><div id="outlook" class="outlook"></div></section>
       <section class="card"><h2>歷史紀錄</h2><table>
-        <thead><tr><th>執行時間</th><th>觸發</th><th>日出</th><th>日落</th><th>實況</th></tr></thead>
+        <thead id="hist-head"></thead>
         <tbody id="history"></tbody></table></section>
     </div>
   </div>
@@ -104,17 +112,45 @@ function countdown(iso) {
 
 // 依當下時間挑「下一場」：先取未來的事件（按時間排序），已過去的排到後面。
 // 兩場都過去（資料嚴重過期）時維持時間順序，交由 stale 警示處理。
-function nextPair(next, now = Date.now()) {
-  const byTime = [['sunrise', next.sunrise], ['sunset', next.sunset]]
+function nextPair(events, now = Date.now()) {
+  const byTime = Object.entries(events)
     .sort((a, b) => new Date(a[1].eventTime) - new Date(b[1].eventTime));
   const future = byTime.filter(([, e]) => new Date(e.eventTime) > now);
   const past = byTime.filter(([, e]) => new Date(e.eventTime) <= now);
   return future.length ? [...future, ...past] : byTime;
 }
 
+const LOC_KEY = 'burningSkyLocation';
+let currentData = null, currentHistory = [], currentVerifications = [];
+
+function selectedLocation(data) {
+  const saved = localStorage.getItem(LOC_KEY);
+  return data.locations.find(l => l.id === saved) || data.locations[0];
+}
+
+function renderLocationTabs(data, activeId) {
+  document.getElementById('locs').innerHTML = data.locations.map(l =>
+    `<button data-id="${l.id}" aria-pressed="${l.id === activeId}">${l.name}</button>`).join('');
+  for (const btn of document.querySelectorAll('#locs button')) {
+    btn.onclick = () => {
+      localStorage.setItem(LOC_KEY, btn.dataset.id);
+      renderAll();
+    };
+  }
+}
+
 function render(data, history, verifications = []) {
-  const pair = nextPair(data.next);
-  const [mainKind, main] = pair[0], [secKind, sec] = pair[1];
+  currentData = data; currentHistory = history; currentVerifications = verifications;
+  renderAll();
+}
+
+function renderAll() {
+  const data = currentData, history = currentHistory, verifications = currentVerifications;
+  const loc = selectedLocation(data);
+  renderLocationTabs(data, loc.id);
+
+  const pair = nextPair(loc.events);
+  const [mainKind, main] = pair[0];
 
   const [lvl, color] = LV(main.score);
   document.getElementById('main-card').innerHTML =
@@ -123,12 +159,20 @@ function render(data, history, verifications = []) {
      <span class="level" style="background:${color}">${lvl}</span>
      <div class="when">${fmtDate(main.eventTime)} ${fmtTime(main.eventTime)} ${KIND[mainKind]}・${countdown(main.eventTime)}</div>`;
 
-  const [slvl, scolor] = LV(sec.score);
-  document.getElementById('second-card').innerHTML =
-    `<div><div class="kind">再下一場・${KIND[secKind]}</div>
-     <div class="when">${fmtDate(sec.eventTime)} ${fmtTime(sec.eventTime)}</div></div>
-     <div style="text-align:right"><div class="score" style="color:${scolor}">${sec.score}</div>
-     <span class="level" style="background:${scolor}">${slvl}</span></div>`;
+  // 只宣告一個場次的地點（如高美濕地只有日落）沒有副卡
+  const secondCard = document.getElementById('second-card');
+  if (pair.length > 1) {
+    const [secKind, sec] = pair[1];
+    const [slvl, scolor] = LV(sec.score);
+    secondCard.hidden = false;
+    secondCard.innerHTML =
+      `<div><div class="kind">再下一場・${KIND[secKind]}</div>
+       <div class="when">${fmtDate(sec.eventTime)} ${fmtTime(sec.eventTime)}</div></div>
+       <div style="text-align:right"><div class="score" style="color:${scolor}">${sec.score}</div>
+       <span class="level" style="background:${scolor}">${slvl}</span></div>`;
+  } else {
+    secondCard.hidden = true;
+  }
 
   const lp = main.lightPath;
   document.getElementById('factors').innerHTML = main.factors.map(f =>
@@ -141,26 +185,38 @@ function render(data, history, verifications = []) {
          : ''}
      </div>`).join('');
 
-  document.getElementById('outlook').innerHTML = data.outlook.map(d =>
-    `<div class="day"><div class="d">${fmtDate(d.date + 'T00:00:00+08:00')}</div>
-      <div>日出 <span class="s" style="color:${LV(d.sunrise.score)[1]}">${d.sunrise.score}</span></div>
-      <div>日落 <span class="s" style="color:${LV(d.sunset.score)[1]}">${d.sunset.score}</span></div></div>`).join('');
+  document.getElementById('outlook').innerHTML = loc.outlook.map(d => {
+    const cells = ['sunrise', 'sunset'].filter(k => d[k]).map(k =>
+      `<div>${KIND[k]} <span class="s" style="color:${LV(d[k].score)[1]}">${d[k].score}</span></div>`).join('');
+    return `<div class="day"><div class="d">${fmtDate(d.date + 'T00:00:00+08:00')}</div>${cells}</div>`;
+  }).join('');
 
-  // 實況：攝影機在事件時刻量到的天空暖色比例（camBurnIndex），以 date+kind 對回預測
+  // 實況：攝影機在事件時刻量到的天空暖色比例（camBurnIndex），以 date+kind+location 對回預測
   const actualFor = (eventTime, kind) => {
-    const rec = verifications.find(v => v.date === eventTime.slice(0, 10) && v.kind === kind);
+    const rec = verifications.find(v =>
+      v.date === eventTime.slice(0, 10) && v.kind === kind && (v.location ?? 'taipei') === loc.id);
     if (!rec || !Number.isFinite(rec.camBurnIndex)) return '';
-    // 標記為可疑的量測不當作實況：整片天均勻轉暖多半是相機偏色，不是霞光
+    // 標記為可疑的量測不當作實況：待機卡或整片天均勻轉暖都不是真實霞光
     if (rec.suspect) return `<span title="量測可疑，不列入校準">?</span>`;
     return rec.camBurnIndex >= 50 ? '🔥' : rec.camBurnIndex >= 25 ? '淡燒' : '—';
   };
-  document.getElementById('history').innerHTML = history.slice(-14).reverse().map(h =>
-    `<tr><td>${fmtDate(h.ranAt)} ${fmtTime(h.ranAt)}</td>
-      <td>${h.trigger === 'sunset-run' ? '日落場' : h.trigger === 'sunrise-run' ? '日出場' : '手動'}</td>
-      <td style="color:${LV(h.sunriseScore)[1]}">${h.sunriseScore}</td>
-      <td style="color:${LV(h.sunsetScore)[1]}">${h.sunsetScore}</td>
-      <td>${actualFor(h.sunriseTime, 'sunrise')}${actualFor(h.sunsetTime, 'sunset')
-        ? ` / ${actualFor(h.sunsetTime, 'sunset')}` : ''}</td></tr>`).join('');
+
+  // history 每筆的 locations[<id>] 底下才是該地資料；舊格式欄位在頂層，僅台北有
+  const entryFor = h => h.locations ? h.locations[loc.id] : (loc.id === 'taipei' ? h : null);
+  const kinds = Object.keys(loc.events);
+  document.getElementById('hist-head').innerHTML =
+    `<tr><th>執行時間</th><th>觸發</th>${kinds.map(k => `<th>${KIND[k]}</th>`).join('')}<th>實況</th></tr>`;
+  document.getElementById('history').innerHTML = history
+    .map(h => ({ h, e: entryFor(h) })).filter(x => x.e)
+    .slice(-14).reverse()
+    .map(({ h, e }) => {
+      const scores = kinds.map(k => Number.isFinite(e[`${k}Score`])
+        ? `<td style="color:${LV(e[`${k}Score`])[1]}">${e[`${k}Score`]}</td>` : '<td>—</td>').join('');
+      const actual = kinds.map(k => e[`${k}Time`] ? actualFor(e[`${k}Time`], k) : '').filter(Boolean).join(' / ');
+      return `<tr><td>${fmtDate(h.ranAt)} ${fmtTime(h.ranAt)}</td>
+        <td>${h.trigger === 'sunset-run' ? '日落場' : h.trigger === 'sunrise-run' ? '日出場' : '手動'}</td>
+        ${scores}<td>${actual}</td></tr>`;
+    }).join('');
 
   document.getElementById('gen').textContent =
     `資料更新於 ${fmtDate(data.generatedAt)} ${fmtTime(data.generatedAt)}（台北時間）`;

@@ -4,12 +4,17 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { scoreEvent, interpolate } from './score.mjs';
 import { sunAzimuthAt, destinationPoint } from './geo.mjs';
+import { LOCATIONS } from './locations.mjs';
 
-const LAT = 25.04, LON = 121.56;
-const FORECAST_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+// Open-Meteo 支援逗號分隔的多點批次，實測 40 點單次呼叫沒問題，
+// 所以不管幾個地點，API 呼叫數都維持 3 次（天氣、空品、光路）。
+const latList = pts => pts.map(p => (p.lat ?? p.latitude).toFixed(4)).join(',');
+const lonList = pts => pts.map(p => (p.lon ?? p.longitude).toFixed(4)).join(',');
+
+const forecastUrlFor = pts => `https://api.open-meteo.com/v1/forecast?latitude=${latList(pts)}&longitude=${lonList(pts)}`
   + `&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,visibility,precipitation_probability`
   + `&daily=sunrise,sunset&timezone=Asia%2FTaipei&forecast_days=5`;
-const AIR_URL = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}`
+const airUrlFor = pts => `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latList(pts)}&longitude=${lonList(pts)}`
   + `&hourly=aerosol_optical_depth&timezone=Asia%2FTaipei&forecast_days=5`;
 
 const DATA_PATH = new URL('../docs/data.json', import.meta.url);
@@ -51,23 +56,23 @@ export function effectiveLow(pathLow, centerLow) {
 }
 
 // 事件時刻的太陽方位角 + 沿線取樣點（日落往西進台灣海峽、日出往東出太平洋，隨季節擺動）
-export function buildPathPoints(eventIso) {
-  const azimuth = sunAzimuthAt(toEpoch(eventIso), LAT, LON);
-  return { azimuth, points: PATH_DISTANCES.map(km => ({ km, ...destinationPoint(LAT, LON, azimuth, km) })) };
+export function buildPathPoints(eventIso, lat, lon) {
+  const azimuth = sunAzimuthAt(toEpoch(eventIso), lat, lon);
+  return { azimuth, points: PATH_DISTANCES.map(km => ({ km, ...destinationPoint(lat, lon, azimuth, km) })) };
 }
 
-// Open-Meteo 多點批次回應：單點回物件、多點回陣列；點數不符視為整次失敗
-export function parsePathBatch(payload, expectedCount) {
+// Open-Meteo 多點批次回應：單點回物件、多點回陣列；點數不符視為整次失敗。
+// 這道檢查是錯位防護的第一關——少一筆就會讓後面所有地點的資料整體位移。
+export function parseBatch(payload, expectedCount, label) {
   const arr = Array.isArray(payload) ? payload : [payload];
   if (arr.length !== expectedCount) {
-    throw new Error(`parsePathBatch: 批次回應 ${arr.length} 點，應為 ${expectedCount} 點`);
+    throw new Error(`parseBatch(${label}): 批次回應 ${arr.length} 筆，應為 ${expectedCount} 筆`);
   }
   return arr;
 }
 
 function pathBatchUrl(points) {
-  return `https://api.open-meteo.com/v1/forecast?latitude=${points.map(p => p.lat.toFixed(4)).join(',')}`
-    + `&longitude=${points.map(p => p.lon.toFixed(4)).join(',')}`
+  return `https://api.open-meteo.com/v1/forecast?latitude=${latList(points)}&longitude=${lonList(points)}`
     + `&hourly=cloud_cover_low&timezone=Asia%2FTaipei&forecast_days=5`;
 }
 
@@ -106,11 +111,10 @@ export function conditionsAt(forecast, air, epoch) {
   return cond;
 }
 
-// paths[kind] = { azimuth, samples: [5 個 Open-Meteo 單點回應] }
-function evaluate(forecast, air, paths, kind, iso) {
+// path = { azimuth, samples: [5 個 Open-Meteo 單點回應] }
+function evaluate(forecast, air, p, iso) {
   const epoch = toEpoch(iso);
   const cond = conditionsAt(forecast, air, epoch);
-  const p = paths[kind];
   const lows = p.samples.map((s, i) =>
     pick(`光路點${i + 1} cloudLow`, s.hourly.time.map(toEpoch), s.hourly.cloud_cover_low, epoch));
   lows.forEach((low, i) => {
@@ -131,46 +135,99 @@ function evaluate(forecast, air, paths, kind, iso) {
   };
 }
 
-export function nextEvents(forecast, now) {
-  const events = forecast.daily.time.flatMap((_, i) => [
-    { kind: 'sunrise', iso: forecast.daily.sunrise[i] },
-    { kind: 'sunset', iso: forecast.daily.sunset[i] },
-  ]).map(e => ({ ...e, epoch: toEpoch(e.iso) }))
-    .filter(e => e.epoch > now)
-    .sort((a, b) => a.epoch - b.epoch);
-
-  const nextSunrise = events.find(e => e.kind === 'sunrise');
-  const nextSunset = events.find(e => e.kind === 'sunset');
-  if (!nextSunrise || !nextSunset) {
-    throw new Error('nextEvents: 預報範圍內找不到下一場日出或日落，資料可能過期');
+// 只找該地點宣告的場次；宣告了卻在預報範圍內找不到，就是資料過期，整次失敗。
+export function nextEventsFor(forecast, loc, now) {
+  const out = {};
+  for (const kind of Object.keys(loc.events)) {
+    const next = forecast.daily.time
+      .map((_, i) => forecast.daily[kind][i])
+      .map(iso => ({ iso, epoch: toEpoch(iso) }))
+      .filter(e => e.epoch > now)
+      .sort((a, b) => a.epoch - b.epoch)[0];
+    if (!next) throw new Error(`nextEventsFor: ${loc.id} 的預報範圍內找不到下一場 ${kind}，資料可能過期`);
+    out[kind] = next;
   }
-  return { nextSunrise, nextSunset };
+  return out;
 }
 
-export function buildData(forecast, air, paths, trigger, now) {
-  const { nextSunrise, nextSunset } = nextEvents(forecast, now);
+// 規劃光路批次：所有地點所有宣告場次的取樣點串成一個陣列，
+// 同時建立「地點:場次 → 起始索引」的顯式對照表。
+// 不靠隱含順序推算，是因為錯位不會拋錯，只會安靜地把某地的天氣算成另一地的分數。
+export function buildPathPlan(weatherByLoc, now, locations = LOCATIONS) {
+  const points = [];
+  const index = new Map();
+  for (const loc of locations) {
+    const events = nextEventsFor(weatherByLoc[loc.id], loc, now);
+    for (const kind of Object.keys(loc.events)) {
+      const { iso } = events[kind];
+      const { azimuth, points: pts } = buildPathPoints(iso, loc.lat, loc.lon);
+      index.set(`${loc.id}:${kind}`, { start: points.length, azimuth, iso });
+      points.push(...pts);
+    }
+  }
+  return { points, index };
+}
 
-  // 趨勢：接下來 3 天（光路點沿用下一場事件的取樣，逐日方位角差 <2°，300km 尺度可忽略）
-  const firstEpoch = Math.min(nextSunrise.epoch, nextSunset.epoch);
-  const outlook = forecast.daily.time
-    .map((date, i) => ({ date, sunriseIso: forecast.daily.sunrise[i], sunsetIso: forecast.daily.sunset[i] }))
-    .filter(d => toEpoch(d.sunriseIso) > firstEpoch || toEpoch(d.sunsetIso) > firstEpoch)
-    .slice(0, 3)
-    .map(d => ({
-      date: d.date,
-      sunrise: { time: `${d.sunriseIso}:00+08:00`, score: evaluate(forecast, air, paths, 'sunrise', d.sunriseIso).score },
-      sunset: { time: `${d.sunsetIso}:00+08:00`, score: evaluate(forecast, air, paths, 'sunset', d.sunsetIso).score },
-    }));
+// 三個批次回應在此處、且僅在此處對位回地點。集中一處才測得住。
+export function assembleBatches(weatherArr, airArr, pathArr, plan, locations = LOCATIONS) {
+  const weather = {}, air = {};
+  locations.forEach((loc, i) => {
+    weather[loc.id] = weatherArr[i];
+    air[loc.id] = airArr[i];
+  });
+  const paths = {};
+  for (const [key, { start, azimuth, iso }] of plan.index) {
+    paths[key] = { azimuth, iso, samples: pathArr.slice(start, start + PATH_DISTANCES.length) };
+  }
+  return { weather, air, paths };
+}
 
-  return {
-    generatedAt: new Date(now).toISOString(),
-    trigger,
-    next: {
-      sunrise: evaluate(forecast, air, paths, 'sunrise', nextSunrise.iso),
-      sunset: evaluate(forecast, air, paths, 'sunset', nextSunset.iso),
-    },
-    outlook,
-  };
+export function buildData({ weather, air, paths }, trigger, now, locations = LOCATIONS) {
+  const built = locations.map(loc => {
+    const forecast = weather[loc.id];
+    const airData = air[loc.id];
+    const kinds = Object.keys(loc.events);
+
+    const events = {};
+    for (const kind of kinds) {
+      const p = paths[`${loc.id}:${kind}`];
+      events[kind] = evaluate(forecast, airData, p, p.iso);
+    }
+
+    // 趨勢：接下來 3 天（光路點沿用下一場事件的取樣，逐日方位角差 <2°，300km 尺度可忽略）
+    const firstEpoch = Math.min(...kinds.map(k => toEpoch(paths[`${loc.id}:${k}`].iso)));
+    const outlook = forecast.daily.time
+      .map((date, i) => ({ date, i }))
+      .filter(({ i }) => kinds.some(k => toEpoch(forecast.daily[k][i]) > firstEpoch))
+      .slice(0, 3)
+      .map(({ date, i }) => {
+        const row = { date };
+        for (const kind of kinds) {
+          const iso = forecast.daily[kind][i];
+          row[kind] = { time: `${iso}:00+08:00`, score: evaluate(forecast, airData, paths[`${loc.id}:${kind}`], iso).score };
+        }
+        return row;
+      });
+
+    return { id: loc.id, name: loc.name, events, outlook };
+  });
+
+  return { generatedAt: new Date(now).toISOString(), trigger, locations: built };
+}
+
+// data.json → history 一筆：只記該地宣告的場次，供日後權重校準
+export function historyEntry(data, trigger) {
+  const locations = {};
+  for (const loc of data.locations) {
+    const entry = {};
+    for (const [kind, ev] of Object.entries(loc.events)) {
+      entry[`${kind}Score`] = ev.score;
+      entry[`${kind}Time`] = ev.eventTime;
+      entry[`${kind}Factors`] = factorScores(ev.factors);
+    }
+    locations[loc.id] = entry;
+  }
+  return { ranAt: data.generatedAt, trigger, locations };
 }
 
 // factors 陣列 → { canvas: 34, lowCloud: 20, ... }，存進 history 供日後權重校準
@@ -197,39 +254,33 @@ export async function readHistory(path = HISTORY_PATH) {
 
 async function main() {
   const trigger = process.argv[2] || 'manual';
-  const [forecast, air] = await Promise.all([
-    fetchJsonWithRetry(FORECAST_URL),
-    fetchJsonWithRetry(AIR_URL),
-  ]);
-
   const now = Date.now();
-  const { nextSunrise, nextSunset } = nextEvents(forecast, now);
-  const sunsetPath = buildPathPoints(nextSunset.iso);
-  const sunrisePath = buildPathPoints(nextSunrise.iso);
-  const allPoints = [...sunsetPath.points, ...sunrisePath.points];
-  const batch = parsePathBatch(await fetchJsonWithRetry(pathBatchUrl(allPoints)), allPoints.length);
-  const paths = {
-    sunset: { azimuth: sunsetPath.azimuth, samples: batch.slice(0, PATH_DISTANCES.length) },
-    sunrise: { azimuth: sunrisePath.azimuth, samples: batch.slice(PATH_DISTANCES.length) },
-  };
 
-  const data = buildData(forecast, air, paths, trigger, now);
+  // 第一批：所有地點的天氣與空品，各一次呼叫
+  const [weatherRaw, airRaw] = await Promise.all([
+    fetchJsonWithRetry(forecastUrlFor(LOCATIONS)),
+    fetchJsonWithRetry(airUrlFor(LOCATIONS)),
+  ]);
+  const weatherArr = parseBatch(weatherRaw, LOCATIONS.length, '天氣');
+  const airArr = parseBatch(airRaw, LOCATIONS.length, '空品');
+
+  // 光路取樣點取決於各地事件時刻，所以要等天氣回來才能規劃
+  const weatherByLoc = Object.fromEntries(LOCATIONS.map((loc, i) => [loc.id, weatherArr[i]]));
+  const plan = buildPathPlan(weatherByLoc, now);
+  const pathArr = parseBatch(await fetchJsonWithRetry(pathBatchUrl(plan.points)), plan.points.length, '光路');
+
+  const data = buildData(assembleBatches(weatherArr, airArr, pathArr, plan), trigger, now);
   // 先把歷史讀進來再落筆：任何一份資料有問題，就兩份都不寫。
   const history = await readHistory();
 
   await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n');
-  history.push({
-    ranAt: data.generatedAt,
-    trigger,
-    sunriseScore: data.next.sunrise.score,
-    sunsetScore: data.next.sunset.score,
-    sunriseTime: data.next.sunrise.eventTime,
-    sunsetTime: data.next.sunset.eventTime,
-    sunriseFactors: factorScores(data.next.sunrise.factors),
-    sunsetFactors: factorScores(data.next.sunset.factors),
-  });
+  history.push(historyEntry(data, trigger));
   await writeFile(HISTORY_PATH, JSON.stringify(history, null, 2) + '\n');
-  console.log(`OK trigger=${trigger} sunrise=${data.next.sunrise.score} sunset=${data.next.sunset.score}`);
+
+  const summary = data.locations
+    .map(l => `${l.id}=${Object.entries(l.events).map(([k, e]) => `${k[3]}${e.score}`).join('/')}`)
+    .join(' ');
+  console.log(`OK trigger=${trigger} ${summary}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
