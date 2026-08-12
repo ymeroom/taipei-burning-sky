@@ -36,5 +36,10 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     testImplementation("junit:junit:4.13.2")
+    // org.json 屬 Android 框架，在 JVM 單元測試裡只有會拋
+    // "Method ... not mocked" 的樁。加真實實作到「測試」classpath，
+    // 正式 APK 仍用系統內建的那份，不會多打包進去。
+    testImplementation("org.json:json:20231013")
 }
