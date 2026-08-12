@@ -85,8 +85,8 @@ private fun buildViews(ctx: Context): RemoteViews {
             v.setViewVisibility(slot, View.VISIBLE)
             v.setTextViewText(scoreId, s.score.toString())
             v.setTextViewText(nameId, shortName(s.name))
-            // 最高分（第一個）用等級色加亮，其餘用次要色，一眼看出今天該去哪
-            val color = if (i == 0) levelColor(ctx, s.score) else ctx.getColor(R.color.ink_soft)
+            // 最高分永遠最醒目，其餘明顯次要
+            val color = if (i == 0) topColor(ctx, s.score) else ctx.getColor(R.color.muted)
             v.setTextColor(scoreId, color)
         }
     }
@@ -103,12 +103,18 @@ private fun buildViews(ctx: Context): RemoteViews {
     return v
 }
 
-private fun levelColor(ctx: Context, score: Int): Int = ctx.getColor(
+/**
+ * 最高分的顏色。低分等級色（lv0/lv1）比次要文字還暗，直接套用會讓「最高分」
+ * 看起來反而最不起眼——2026-08-12 實機就撞到這個問題（48 分比旁邊的 37、35 還暗）。
+ *
+ * 所以低於 50 分時改用中性亮色：最高分永遠是視覺重心，而暖色只在真的值得
+ * 出門（≥50）時才出現。顏色因此成為一個有意義的訊號，而不只是裝飾。
+ */
+private fun topColor(ctx: Context, score: Int): Int = ctx.getColor(
     when {
         score >= 75 -> R.color.lv3
         score >= 50 -> R.color.lv2
-        score >= 25 -> R.color.lv1
-        else -> R.color.lv0
+        else -> R.color.ink
     }
 )
 

@@ -1,0 +1,12 @@
+<!-- 通知列圖示。Android 只取 alpha 通道當剪影，背景必須透明、圖形用純白，
+     否則整塊會被畫成一個實心方塊（2026-08-12 實機就是這樣）。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- 太陽 -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M12,7m-4.2,0a4.2,4.2 0,1 1,8.4 0a4.2,4.2 0,1 1,-8.4 0" />
+    <!-- 地平線與下方雲層 -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M2,14h20v2.2h-20z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M5,18.4h14v1.8h-14z" />
+</vector>

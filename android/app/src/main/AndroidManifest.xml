@@ -40,6 +40,11 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
+            <!-- App 更新後桌面會退回 initialLayout（頁尾寫死「載入中…」），
+                 收到這個廣播就用快取立刻重畫，不必等下一次輪詢 -->
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
         </receiver>
 
     </application>

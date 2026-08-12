@@ -48,7 +48,7 @@ object Notifier {
         )
 
         val n = NotificationCompat.Builder(ctx, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText("${top.name} ${top.score} 分・${top.level}")
             .setStyle(
@@ -57,6 +57,7 @@ object Notifier {
                 )
             )
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setColor(0xFFF0805A.toInt())
             .setContentIntent(pi)
             .setAutoCancel(true)
             .build()

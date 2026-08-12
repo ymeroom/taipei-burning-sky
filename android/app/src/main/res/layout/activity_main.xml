@@ -44,6 +44,13 @@
             android:layout_marginTop="24dp"
             android:text="立即更新" />
 
+        <Button
+            android:id="@+id/pin_widget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="把 widget 加到桌面" />
+
         <TextView
             android:id="@+id/notify_status"
             android:layout_width="match_parent"

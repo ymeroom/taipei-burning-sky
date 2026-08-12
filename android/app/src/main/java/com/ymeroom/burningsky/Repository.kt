@@ -1,6 +1,7 @@
 package com.ymeroom.burningsky
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import java.net.HttpURLConnection
 import java.net.URL
@@ -58,6 +59,19 @@ object Repository {
             Log.w(TAG, "已存的 data.json 解析失敗，保留原檔不動", e)
             null
         }
+    }
+
+    /**
+     * 監聽資料變更。背景同步是非同步的，畫面開著時資料可能晚一步才到——
+     * 沒有這個監聽，使用者按下「立即更新」後畫面會一直停在舊狀態，
+     * 要離開再回來才會更新。
+     */
+    fun registerChangeListener(ctx: Context, l: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs(ctx).registerOnSharedPreferenceChangeListener(l)
+    }
+
+    fun unregisterChangeListener(ctx: Context, l: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs(ctx).unregisterOnSharedPreferenceChangeListener(l)
     }
 
     fun lastNotifyKey(ctx: Context): String? = prefs(ctx).getString(KEY_LAST_NOTIFY, null)

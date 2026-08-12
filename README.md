@@ -155,6 +155,62 @@ foreach ($j in @(@{N='BurningSky-Sunset';K='sunset';T='16:45'}, @{N='BurningSky-
 所以 `.github/workflows/capture.yml` 的排程已停用，改用本機腳本。
 若日後換成不需登入的公開影像來源，把該檔的 `schedule` 解除註解即可。
 
+## Android App
+
+桌面 widget 顯示下一場日出／日落各地分數，任一地點 ≥50 分時發通知。
+原始碼在 `android/`，applicationId `com.ymeroom.burningsky`。
+
+**不需要推播伺服器**：`data.json` 已是公開靜態檔，App 用 WorkManager 每小時自己抓，
+抓到高分再發本機通知。沒有 Firebase、沒有金鑰、沒有後端。
+
+| 行為 | 規則 |
+|---|---|
+| 輪詢 | 每小時一次，需有網路。不對準 15:00／23:30，因為 Actions cron 實測延遲 1–2.5 小時 |
+| 通知門檻 | 任一地點 ≥50 分（值得一看） |
+| 通知去重 | 以 `<事件日期>:<場次>` 為鍵，同一場只發一次 |
+| widget 內容 | 下一場的場次、時刻、倒數，各地分數由高到低，最高分加亮 |
+| 過期 | `generatedAt` 超過 16 小時顯示「⚠ 資料過期」（與網站同判準） |
+| 抓取失敗 | 沿用快取資料，WorkManager 退避重試，絕不顯示空白 |
+
+相依只有 `androidx.core-ktx` 與 `androidx.work`——widget 用傳統 RemoteViews 而非
+Compose／Glance，APK 約 2.4MB。所有判斷邏輯集中在 `Forecast.kt`（不 import 任何
+`android.*`），因此能在電腦上用 JUnit 驗證，共 24 條測試。
+
+### 建置與安裝
+
+```bash
+cd android
+JAVA_HOME="C:/Program Files/Android/Android Studio/jbr" ./gradlew test assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Gradle 8.2 + AGP 8.1.4（本機已快取 Gradle 8.2，不需另外下載）。
+debug keystore 在此機器上固定，更新可直接覆蓋安裝。非上架用途，不需 release 簽章。
+
+開啟 App 後按「把 widget 加到桌面」即可加入，比自己長按桌面翻小工具清單快。
+
+### 實機驗證發現的四個問題（2026-08-12，Galaxy Note 10+／Android 12）
+
+單元測試涵蓋不到的部分，只有真機才會現形：
+
+1. **背景同步後畫面不重畫**——`render()` 只在 `onResume` 跑一次，資料晚一步到就看不到。
+   改用 SharedPreferences 變更監聽。
+2. **最高分加亮邏輯是反的**——低分等級色（`lv1 #8b94b2`）比次要文字色（`#b9c0d6`）更暗，
+   導致 48 分看起來比旁邊的 37、35 還不起眼。改為低於 50 分時用中性亮色，
+   暖色只在真的值得出門時出現。
+3. **通知圖示變成實心方塊**——Android 只取小圖示的 alpha 通道當剪影，
+   原本沿用不透明的 launcher icon 就整塊糊掉。改用透明底的白色向量圖。
+4. **更新 App 後 widget 卡在「載入中」**——桌面會退回 `initialLayout`，
+   而該版面頁尾預設就是這行字，要等下次輪詢（最多一小時）才恢復。
+   補上 `MY_PACKAGE_REPLACED` 廣播與開啟 App 時的重畫。
+
+### 已知限制
+
+- **預測模型尚未校準**（目前 8/40 筆），通知依未驗證的分數發出，可能誤報或漏報。
+  校準完成後 App 不需改動。
+- Doze 模式可能讓輪詢延後，最壞情況通知比預報晚一兩小時。
+- 小米、OPPO 等廠商的省電機制較積極，可能需要手動把 App 加入白名單。
+
 ## 本機開發
 
 ```bash

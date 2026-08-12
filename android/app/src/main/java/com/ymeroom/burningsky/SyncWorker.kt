@@ -86,11 +86,21 @@ object SyncScheduler {
     }
 }
 
-/** 開機後重排。WorkManager 本身會保留週期工作，這裡是保險。 */
+/**
+ * 開機與 App 更新後的復原。
+ *
+ * MY_PACKAGE_REPLACED 是必要的：App 一被覆蓋安裝，桌面就會退回 initialLayout，
+ * 而那個版面的頁尾寫死是「載入中…」。沒有這段，使用者每次更新 App 後都會看到
+ * 一個假的載入中狀態，最久要等一小時才會被下次輪詢救回來（2026-08-12 實機撞到）。
+ * 這裡直接用快取重畫，不需要等網路。
+ */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            SyncScheduler.ensureScheduled(ctx)
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
+                SyncScheduler.ensureScheduled(ctx)
+                updateAllWidgets(ctx)
+            }
         }
     }
 }

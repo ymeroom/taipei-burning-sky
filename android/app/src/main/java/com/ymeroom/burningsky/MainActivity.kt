@@ -2,6 +2,9 @@ package com.ymeroom.burningsky
 
 import android.Manifest
 import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +20,11 @@ import java.time.format.DateTimeFormatter
  */
 class MainActivity : Activity() {
 
+    // 背景同步寫入偏好設定時重畫，否則畫面會停在按下「立即更新」之前的狀態
+    private val onDataChanged = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        runOnUiThread { render() }
+    }
+
     private val taipei: ZoneId = ZoneId.of("Asia/Taipei")
     private val hhmm: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd HH:mm")
 
@@ -28,6 +36,17 @@ class MainActivity : Activity() {
         SyncScheduler.ensureScheduled(this)
         requestNotificationPermissionIfNeeded()
 
+        findViewById<Button>(R.id.pin_widget).setOnClickListener {
+            // 比叫使用者自己長按桌面翻小工具清單友善得多；系統會跳出預覽對話框
+            val awm = getSystemService(AppWidgetManager::class.java)
+            if (awm != null && awm.isRequestPinAppWidgetSupported) {
+                awm.requestPinAppWidget(ComponentName(this, BurningSkyWidget::class.java), null, null)
+            } else {
+                findViewById<TextView>(R.id.notify_status).text =
+                    "這台裝置的桌面不支援自動加入，請長按桌面空白處 → 小工具 → 火燒雲預報"
+            }
+        }
+
         findViewById<Button>(R.id.refresh).setOnClickListener {
             SyncScheduler.syncNow(this)
             findViewById<TextView>(R.id.generated).text = "更新中…稍候重開此頁查看"
@@ -36,7 +55,14 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        Repository.registerChangeListener(this, onDataChanged)
         render()
+        updateAllWidgets(this)   // 用快取重畫，讓桌面卡片不會落後於這一頁
+    }
+
+    override fun onPause() {
+        Repository.unregisterChangeListener(this, onDataChanged)
+        super.onPause()
     }
 
     private fun render() {
