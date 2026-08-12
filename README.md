@@ -51,7 +51,7 @@ GitHub Actions 依排程執行 `scripts/update.mjs`：
 
 攝影機：日落＝象山看台北（台北觀光官方）、日出＝烘爐地（新北觀光官方）。
 
-每次抓幀會另存一張 160px 縮圖到 `docs/frames/<date>-<kind>.jpg`（約 1–2KB），供日後查證可疑數值。
+每次抓幀會另存一張 160px 縮圖到 `docs/frames/<date>-<location>-<kind>.jpg`（約 1–2KB），供日後查證可疑數值。
 
 ### 兩道防線：擋掉待機卡與凍結畫面
 
@@ -214,7 +214,7 @@ debug keystore 在此機器上固定，更新可直接覆蓋安裝。非上架�
 ## 本機開發
 
 ```bash
-node --test                 # 單元測試（83 條）
+node --test                 # 單元測試（128 條）
 node scripts/update.mjs     # 手動抓一次資料
 npx http-server docs        # 本機預覽
 ```
