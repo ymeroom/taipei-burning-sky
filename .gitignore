@@ -1,2 +1,6 @@
 .superpowers/
 logs/
+android/build/
+android/.gradle/
+android/app/build/
+android/local.properties
