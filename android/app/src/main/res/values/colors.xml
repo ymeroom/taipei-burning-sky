@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 沿用網站的深色天空配色，讓 widget 與網頁看起來是同一個東西 -->
+<resources>
+    <color name="paper">#10131f</color>
+    <color name="card">#191d2d</color>
+    <color name="ink">#e6e9f2</color>
+    <color name="ink_soft">#b9c0d6</color>
+    <color name="muted">#8b94b2</color>
+    <color name="lv3">#f0805a</color>
+    <color name="lv2">#f0a05a</color>
+    <color name="lv1">#8b94b2</color>
+    <color name="lv0">#6a7290</color>
+    <color name="warn">#e08a80</color>
+</resources>
