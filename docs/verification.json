@@ -174,7 +174,9 @@
     "frameDiffMax": 24,
     "frame": "frames/2026-08-13-wanggaoliao-sunrise.jpg",
     "camera": "望高寮",
-    "capturedAt": "2026-08-12T21:39:04.780Z"
+    "capturedAt": "2026-08-12T21:39:04.780Z",
+    "suspect": true,
+    "suspectReason": "鏡頭沾滿雨滴，整幀泛粉紫；使用者當場確認台中日出沒有燒"
   },
   {
     "date": "2026-08-13",
