@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-13T16:14:44.420Z",
-  "trigger": "sunrise-run",
+  "generatedAt": "2026-08-14T08:11:09.170Z",
+  "trigger": "sunset-run",
   "locations": [
     {
       "id": "taipei",
@@ -8,21 +8,21 @@
       "events": {
         "sunset": {
           "eventTime": "2026-08-14T18:30:00+08:00",
-          "score": 45,
-          "level": "普通",
+          "score": 73,
+          "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 80%",
-              "score": 17,
+              "value": "中高雲合計 30%",
+              "score": 40,
               "max": 40,
-              "reason": "中高雲偏厚，陽光較難透入染色"
+              "reason": "中高雲量恰到好處，畫布漂亮"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 5%",
+              "value": "低雲 4%",
               "score": 23,
               "max": 25,
               "reason": "低空乾淨，光路無阻"
@@ -30,15 +30,15 @@
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 94%・能見度 11km",
-              "score": 0,
+              "value": "濕度 84%・能見度 11km",
+              "score": 5,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
             },
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.53",
+              "value": "AOD 0.54",
               "score": 4,
               "max": 10,
               "reason": "空氣偏髒，紅光會被壓暗"
@@ -54,50 +54,50 @@
           ],
           "lightPath": {
             "azimuth": 287,
-            "pathLow": 7,
-            "centerLow": 1,
+            "pathLow": 5,
+            "centerLow": 4,
             "points": [
               {
                 "km": 40,
-                "low": 5
+                "low": 10
               },
               {
                 "km": 90,
-                "low": 3
+                "low": 1
               },
               {
                 "km": 150,
-                "low": 22
-              },
-              {
-                "km": 220,
                 "low": 5
               },
               {
-                "km": 300,
+                "km": 220,
                 "low": 1
+              },
+              {
+                "km": 300,
+                "low": 5
               }
             ]
           }
         },
         "sunrise": {
-          "eventTime": "2026-08-14T05:27:00+08:00",
-          "score": 82,
-          "level": "大燒預警",
+          "eventTime": "2026-08-15T05:27:00+08:00",
+          "score": 40,
+          "level": "普通",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 27%",
-              "score": 40,
+              "value": "中高雲合計 1%",
+              "score": 2,
               "max": 40,
-              "reason": "中高雲量恰到好處，畫布漂亮"
+              "reason": "中高雲偏少，就算燒起來範圍也有限"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 6%",
-              "score": 23,
+              "value": "低雲 17%",
+              "score": 19,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
@@ -112,7 +112,7 @@
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.35",
+              "value": "AOD 0.34",
               "score": 9,
               "max": 10,
               "reason": "空氣偏髒，紅光會被壓暗"
@@ -127,29 +127,29 @@
             }
           ],
           "lightPath": {
-            "azimuth": 73,
-            "pathLow": 9,
-            "centerLow": 1,
+            "azimuth": 74,
+            "pathLow": 16,
+            "centerLow": 18,
             "points": [
               {
                 "km": 40,
-                "low": 13
+                "low": 28
               },
               {
                 "km": 90,
-                "low": 7
+                "low": 3
               },
               {
                 "km": 150,
-                "low": 7
+                "low": 15
               },
               {
                 "km": 220,
-                "low": 4
+                "low": 23
               },
               {
                 "km": 300,
-                "low": 14
+                "low": 5
               }
             ]
           }
@@ -157,36 +157,36 @@
       },
       "outlook": [
         {
-          "date": "2026-08-14",
-          "sunset": {
-            "time": "2026-08-14T18:30:00+08:00",
-            "score": 45
-          },
-          "sunrise": {
-            "time": "2026-08-14T05:27:00+08:00",
-            "score": 82
-          }
-        },
-        {
           "date": "2026-08-15",
           "sunset": {
             "time": "2026-08-15T18:29:00+08:00",
-            "score": 29
+            "score": 63
           },
           "sunrise": {
             "time": "2026-08-15T05:27:00+08:00",
-            "score": 33
+            "score": 40
           }
         },
         {
           "date": "2026-08-16",
           "sunset": {
             "time": "2026-08-16T18:28:00+08:00",
-            "score": 30
+            "score": 24
           },
           "sunrise": {
             "time": "2026-08-16T05:28:00+08:00",
-            "score": 56
+            "score": 39
+          }
+        },
+        {
+          "date": "2026-08-17",
+          "sunset": {
+            "time": "2026-08-17T18:27:00+08:00",
+            "score": 50
+          },
+          "sunrise": {
+            "time": "2026-08-17T05:28:00+08:00",
+            "score": 66
           }
         }
       ]
@@ -197,29 +197,29 @@
       "events": {
         "sunset": {
           "eventTime": "2026-08-14T18:30:00+08:00",
-          "score": 67,
+          "score": 62,
           "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 50%",
-              "score": 40,
+              "value": "中高雲合計 65%",
+              "score": 35,
               "max": 40,
-              "reason": "中高雲量恰到好處，畫布漂亮"
+              "reason": "中高雲偏厚，陽光較難透入染色"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 9%",
-              "score": 22,
+              "value": "低雲 5%",
+              "score": 23,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 98%・能見度 8km",
+              "value": "濕度 96%・能見度 4km",
               "score": 0,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
@@ -227,7 +227,7 @@
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.53",
+              "value": "AOD 0.54",
               "score": 4,
               "max": 10,
               "reason": "空氣偏髒，紅光會被壓暗"
@@ -235,28 +235,28 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 74%",
-              "score": 1,
+              "value": "降雨機率 77%",
+              "score": 0,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
             }
           ],
           "lightPath": {
             "azimuth": 286,
-            "pathLow": 12,
-            "centerLow": 4,
+            "pathLow": 2,
+            "centerLow": 9,
             "points": [
               {
                 "km": 40,
-                "low": 1
+                "low": 0
               },
               {
                 "km": 90,
-                "low": 5
+                "low": 1
               },
               {
                 "km": 150,
-                "low": 25
+                "low": 5
               },
               {
                 "km": 220,
@@ -264,7 +264,7 @@
               },
               {
                 "km": 300,
-                "low": 50
+                "low": 6
               }
             ]
           }
@@ -275,21 +275,21 @@
           "date": "2026-08-15",
           "sunset": {
             "time": "2026-08-15T18:29:00+08:00",
-            "score": 37
+            "score": 45
           }
         },
         {
           "date": "2026-08-16",
           "sunset": {
             "time": "2026-08-16T18:29:00+08:00",
-            "score": 31
+            "score": 26
           }
         },
         {
           "date": "2026-08-17",
           "sunset": {
             "time": "2026-08-17T18:28:00+08:00",
-            "score": 53
+            "score": 51
           }
         }
       ]
@@ -300,14 +300,14 @@
       "events": {
         "sunset": {
           "eventTime": "2026-08-14T18:32:00+08:00",
-          "score": 64,
-          "level": "值得一看",
+          "score": 49,
+          "level": "普通",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 18%",
-              "score": 28,
+              "value": "中高雲合計 9%",
+              "score": 15,
               "max": 40,
               "reason": "中高雲偏少，就算燒起來範圍也有限"
             },
@@ -322,23 +322,23 @@
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 80%・能見度 12km",
-              "score": 6,
+              "value": "濕度 79%・能見度 10km",
+              "score": 5,
               "max": 15,
-              "reason": "濕度或能見度普通，顏色打點折扣"
+              "reason": "空氣又濕又濁，色彩會很淡"
             },
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.23",
-              "score": 10,
+              "value": "AOD 0.34",
+              "score": 9,
               "max": 10,
-              "reason": "氣溶膠適中，散射出漂亮橘紅"
+              "reason": "空氣偏髒，紅光會被壓暗"
             },
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 83%",
+              "value": "降雨機率 80%",
               "score": 0,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
@@ -346,28 +346,28 @@
           ],
           "lightPath": {
             "azimuth": 286,
-            "pathLow": 15,
-            "centerLow": 14,
+            "pathLow": 9,
+            "centerLow": 23,
             "points": [
               {
                 "km": 40,
-                "low": 2
+                "low": 10
               },
               {
                 "km": 90,
-                "low": 22
+                "low": 0
               },
               {
                 "km": 150,
-                "low": 16
+                "low": 17
               },
               {
                 "km": 220,
-                "low": 32
+                "low": 12
               },
               {
                 "km": 300,
-                "low": 12
+                "low": 10
               }
             ]
           }
@@ -378,21 +378,21 @@
           "date": "2026-08-15",
           "sunset": {
             "time": "2026-08-15T18:32:00+08:00",
-            "score": 39
+            "score": 50
           }
         },
         {
           "date": "2026-08-16",
           "sunset": {
             "time": "2026-08-16T18:31:00+08:00",
-            "score": 29
+            "score": 27
           }
         },
         {
           "date": "2026-08-17",
           "sunset": {
             "time": "2026-08-17T18:30:00+08:00",
-            "score": 16
+            "score": 18
           }
         }
       ]
@@ -402,31 +402,31 @@
       "name": "望高寮",
       "events": {
         "sunrise": {
-          "eventTime": "2026-08-14T05:32:00+08:00",
-          "score": 72,
+          "eventTime": "2026-08-15T05:32:00+08:00",
+          "score": 58,
           "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 20%",
-              "score": 32,
+              "value": "中高雲合計 14%",
+              "score": 22,
               "max": 40,
               "reason": "中高雲偏少，就算燒起來範圍也有限"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 19%",
-              "score": 18,
+              "value": "低雲 30%",
+              "score": 14,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 90%・能見度 18km",
-              "score": 2,
+              "value": "濕度 88%・能見度 18km",
+              "score": 3,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
             },
@@ -441,49 +441,42 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 2%",
-              "score": 10,
+              "value": "降雨機率 9%",
+              "score": 9,
               "max": 10,
               "reason": "無降雨干擾"
             }
           ],
           "lightPath": {
-            "azimuth": 73,
-            "pathLow": 30,
-            "centerLow": 2,
+            "azimuth": 74,
+            "pathLow": 43,
+            "centerLow": 10,
             "points": [
               {
                 "km": 40,
-                "low": 59
+                "low": 67
               },
               {
                 "km": 90,
-                "low": 39
+                "low": 73
               },
               {
                 "km": 150,
-                "low": 1
+                "low": 0
               },
               {
                 "km": 220,
-                "low": 7
+                "low": 10
               },
               {
                 "km": 300,
-                "low": 11
+                "low": 32
               }
             ]
           }
         }
       },
       "outlook": [
-        {
-          "date": "2026-08-15",
-          "sunrise": {
-            "time": "2026-08-15T05:32:00+08:00",
-            "score": 57
-          }
-        },
         {
           "date": "2026-08-16",
           "sunrise": {
@@ -495,7 +488,14 @@
           "date": "2026-08-17",
           "sunrise": {
             "time": "2026-08-17T05:33:00+08:00",
-            "score": 40
+            "score": 47
+          }
+        },
+        {
+          "date": "2026-08-18",
+          "sunrise": {
+            "time": "2026-08-18T05:33:00+08:00",
+            "score": 52
           }
         }
       ]
