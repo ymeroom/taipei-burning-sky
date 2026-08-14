@@ -236,7 +236,10 @@
     "frameDiffMax": 38,
     "frame": "frames/2026-08-14-taipei-sunrise.jpg",
     "camera": "烘爐地",
-    "capturedAt": "2026-08-13T21:35:15.776Z"
+    "capturedAt": "2026-08-13T21:35:15.776Z",
+    "humanVerdict": "none",
+    "humanNote": "使用者現場確認完全沒有暖色；全幀藍灰陰天。預測 82（大燒預警）為明確的過度預測。",
+    "humanCheckedAt": "2026-08-14T08:35:00+08:00"
   },
   {
     "date": "2026-08-14",
@@ -251,6 +254,10 @@
     "frameDiffMax": 35,
     "frame": "frames/2026-08-14-wanggaoliao-sunrise.jpg",
     "camera": "望高寮",
-    "capturedAt": "2026-08-13T21:40:08.402Z"
+    "capturedAt": "2026-08-13T21:40:08.402Z",
+    "humanVerdict": "tinge",
+    "humanNote": "晴空漸層而非火燒雲：太陽上方透鏡狀雲與右側低雲皆未被染色，橘色僅集中在日面周圍與地平線霾層。使用者同意不算火燒雲。",
+    "humanPeakTime": "2026-08-14T05:48:00+08:00",
+    "humanCheckedAt": "2026-08-14T08:35:00+08:00"
   }
 ]
