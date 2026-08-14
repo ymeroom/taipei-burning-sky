@@ -259,5 +259,50 @@
     "humanNote": "晴空漸層而非火燒雲：太陽上方透鏡狀雲與右側低雲皆未被染色，橘色僅集中在日面周圍與地平線霾層。使用者同意不算火燒雲。",
     "humanPeakTime": "2026-08-14T05:48:00+08:00",
     "humanCheckedAt": "2026-08-14T08:35:00+08:00"
+  },
+  {
+    "date": "2026-08-14",
+    "kind": "sunset",
+    "location": "tamsui",
+    "eventTime": "2026-08-14T18:30:00+08:00",
+    "predictedScore": 62,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0.989,
+    "frameDiffMax": 175,
+    "frame": "frames/2026-08-14-tamsui-sunset.jpg",
+    "camera": "淡水漁人碼頭",
+    "capturedAt": "2026-08-14T10:38:12.608Z"
+  },
+  {
+    "date": "2026-08-14",
+    "kind": "sunset",
+    "location": "taipei",
+    "eventTime": "2026-08-14T18:30:00+08:00",
+    "predictedScore": 73,
+    "camWarmRatio": 0.005,
+    "camBrightRatio": 1,
+    "camBurnIndex": 1,
+    "frameDiffMean": 0.474,
+    "frameDiffMax": 36,
+    "frame": "frames/2026-08-14-taipei-sunset.jpg",
+    "camera": "象山看台北",
+    "capturedAt": "2026-08-14T10:38:19.030Z"
+  },
+  {
+    "date": "2026-08-14",
+    "kind": "sunset",
+    "location": "gaomei",
+    "eventTime": "2026-08-14T18:32:00+08:00",
+    "predictedScore": 49,
+    "camWarmRatio": 0.007,
+    "camBrightRatio": 1,
+    "camBurnIndex": 2,
+    "frameDiffMean": 3,
+    "frameDiffMax": 88,
+    "frame": "frames/2026-08-14-gaomei-sunset.jpg",
+    "camera": "高美濕地",
+    "capturedAt": "2026-08-14T10:40:05.608Z"
   }
 ]
