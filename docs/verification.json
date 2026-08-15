@@ -363,7 +363,10 @@
     "frameDiffMax": 12,
     "frame": "frames/2026-08-16-taipei-sunrise.jpg",
     "camera": "烘爐地",
-    "capturedAt": "2026-08-15T21:36:13.246Z"
+    "capturedAt": "2026-08-15T21:36:13.246Z",
+    "humanVerdict": "major",
+    "humanNote": "使用者於台北盆地實地拍到整片橘紅火燒雲，雲體被完全染色。camBurnIndex 98 判定正確，預測 39 為重大低估。",
+    "humanCheckedAt": "2026-08-16T08:05:00+08:00"
   },
   {
     "date": "2026-08-16",
