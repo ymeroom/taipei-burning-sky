@@ -441,5 +441,39 @@
     "humanVerdict": "none",
     "humanNote": "使用者確認 18:39 實測 0 正確。18:07 的整片金色雲同樣屬高角度陽光映照，非火燒雲。",
     "humanCheckedAt": "2026-08-16T18:44:00+08:00"
+  },
+  {
+    "date": "2026-08-17",
+    "kind": "sunrise",
+    "location": "taipei",
+    "eventTime": "2026-08-17T05:28:00+08:00",
+    "predictedScore": 29,
+    "camWarmRatio": 0.966,
+    "camBrightRatio": 1,
+    "camBurnIndex": 100,
+    "frameDiffMean": 0.076,
+    "frameDiffMax": 25,
+    "suspect": true,
+    "suspectReason": "暖色比例 0.966 超過 0.9，整片天均勻轉暖不像真實霞光",
+    "frame": "frames/2026-08-17-taipei-sunrise.jpg",
+    "fullFrame": "frames/full/2026-08-17-taipei-sunrise.jpg",
+    "camera": "烘爐地",
+    "capturedAt": "2026-08-16T21:36:12.294Z"
+  },
+  {
+    "date": "2026-08-17",
+    "kind": "sunrise",
+    "location": "wanggaoliao",
+    "eventTime": "2026-08-17T05:33:00+08:00",
+    "predictedScore": 49,
+    "camWarmRatio": 0.005,
+    "camBrightRatio": 1,
+    "camBurnIndex": 1,
+    "frameDiffMean": 1.249,
+    "frameDiffMax": 39,
+    "frame": "frames/2026-08-17-wanggaoliao-sunrise.jpg",
+    "fullFrame": "frames/full/2026-08-17-wanggaoliao-sunrise.jpg",
+    "camera": "望高寮",
+    "capturedAt": "2026-08-16T21:41:05.568Z"
   }
 ]
