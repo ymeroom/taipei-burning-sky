@@ -397,7 +397,10 @@
     "frame": "frames/2026-08-16-taipei-sunset.jpg",
     "fullFrame": "frames/full/2026-08-16-taipei-sunset.jpg",
     "camera": "象山看台北",
-    "capturedAt": "2026-08-16T10:36:12.497Z"
+    "capturedAt": "2026-08-16T10:36:12.497Z",
+    "humanVerdict": "none",
+    "humanNote": "使用者確認實測 0 與現場相符：以冷藍為主，僅地平線附近幾抹淡粉。",
+    "humanCheckedAt": "2026-08-16T18:44:00+08:00"
   },
   {
     "date": "2026-08-16",
@@ -413,7 +416,10 @@
     "frame": "frames/2026-08-16-tamsui-sunset.jpg",
     "fullFrame": "frames/full/2026-08-16-tamsui-sunset.jpg",
     "camera": "淡水漁人碼頭",
-    "capturedAt": "2026-08-16T10:37:05.621Z"
+    "capturedAt": "2026-08-16T10:37:05.621Z",
+    "humanVerdict": "tinge",
+    "humanNote": "使用者確認 18:37 抓幀時刻的實測 23 與現場相符。18:04 曾有整片金色雲，但當時太陽仰角約 +5 度，屬高角度陽光映照雲面，非低角度紅化的霞光，不列為火燒雲。",
+    "humanCheckedAt": "2026-08-16T18:44:00+08:00"
   },
   {
     "date": "2026-08-16",
@@ -429,6 +435,9 @@
     "frame": "frames/2026-08-16-gaomei-sunset.jpg",
     "fullFrame": "frames/full/2026-08-16-gaomei-sunset.jpg",
     "camera": "高美濕地",
-    "capturedAt": "2026-08-16T10:39:05.225Z"
+    "capturedAt": "2026-08-16T10:39:05.225Z",
+    "humanVerdict": "none",
+    "humanNote": "使用者確認 18:39 實測 0 正確。18:07 的整片金色雲同樣屬高角度陽光映照，非火燒雲。",
+    "humanCheckedAt": "2026-08-16T18:44:00+08:00"
   }
 ]
