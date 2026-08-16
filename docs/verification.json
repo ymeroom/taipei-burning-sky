@@ -364,9 +364,9 @@
     "frame": "frames/2026-08-16-taipei-sunrise.jpg",
     "camera": "烘爐地",
     "capturedAt": "2026-08-15T21:36:13.246Z",
-    "humanVerdict": "major",
-    "humanNote": "使用者於台北盆地實地拍到整片橘紅火燒雲，雲體被完全染色。camBurnIndex 98 判定正確，預測 39 為重大低估。",
-    "humanCheckedAt": "2026-08-16T08:05:00+08:00"
+    "humanVerdict": "sky-burned-camera-unclear",
+    "humanNote": "天空確實燒了：使用者於台北盆地拍到整片橘紅染色雲。但烘爐地鏡頭在 05:36（抓幀時刻）與 05:53（使用者截圖）看到的都是低飽和金黃霾，非火燒雲；使用者回報峰值約 06:56。因此 camBurnIndex 98 是否真的量到那場燒尚未確認，有可能是霾的暖色在一個「後來有燒」的日子裡碰巧衝高。待確認峰值時刻後再定案。",
+    "humanCheckedAt": "2026-08-16T08:15:00+08:00"
   },
   {
     "date": "2026-08-16",
