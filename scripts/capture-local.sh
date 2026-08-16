@@ -30,19 +30,25 @@ STREAM=$(python -m yt_dlp -g -f 'best[height<=720]' "https://www.youtube.com/wat
 
 FRAME=$(mktemp -t frame-XXXXXX.raw)
 THUMB=$(mktemp -t thumb-XXXXXX.jpg)
-trap 'rm -f "$FRAME" "$THUMB"' EXIT
+FULL=$(mktemp -t full-XXXXXX.jpg)
+trap 'rm -f "$FRAME" "$THUMB" "$FULL"' EXIT
 
-# 一次輸入、兩個輸出：raw 取相隔三秒的兩幀（供靜止畫面偵測），jpg 留存以便日後查證
+# 一次輸入、三個輸出：
+#   raw   相隔三秒的兩幀，供靜止畫面偵測與評分
+#   full  評分用的那一幀，原尺寸 320 寬、高品質，供日後重跑分析（見 capture.mjs 的 fullFramePathFor）
+#   thumb 160 寬小圖，網站列表直接顯示用
+# full 用 -q:v 3：縮圖那級（q6）的壓縮已經足以壓平色彩統計，而這份的存在意義正是保住色彩。
 ffmpeg -loglevel error -y -i "$STREAM" \
   -vf "fps=1/3,scale=320:-1" -frames:v 2 -f rawvideo -pix_fmt rgb24 "$FRAME" \
+  -vf "fps=1/3,scale=320:-1" -frames:v 1 -q:v 3 "$FULL" \
   -vf scale=160:-1 -frames:v 1 -q:v 6 "$THUMB"
 
 BYTES=$(wc -c < "$FRAME")
 HEIGHT=$(( BYTES / 320 / 3 / 2 ))
 [ "$HEIGHT" -gt 0 ] || { echo "抓幀失敗（$BYTES bytes）" >&2; exit 1; }
-echo "抓到 2 幀 320×${HEIGHT} 影格，縮圖 $(wc -c < "$THUMB") bytes"
+echo "抓到 2 幀 320×${HEIGHT} 影格，原始影格 $(wc -c < "$FULL") bytes，縮圖 $(wc -c < "$THUMB") bytes"
 
-# 日期留空字串即由 capture.mjs 以台北時區自行判定；縮圖必須放在日期之後的位置
-node scripts/capture.mjs "$KIND" "$FRAME" 320 "$HEIGHT" "$DATE_ARG" "$THUMB" "$LOCATION"
+# 日期留空字串即由 capture.mjs 以台北時區自行判定；縮圖與原始影格必須放在日期之後的位置
+node scripts/capture.mjs "$KIND" "$FRAME" 320 "$HEIGHT" "$DATE_ARG" "$THUMB" "$LOCATION" "$FULL"
 
 echo "完成。記得 commit 並 push docs/verification.json 讓網站顯示實況。"

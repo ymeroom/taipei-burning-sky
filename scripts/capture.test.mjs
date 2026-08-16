@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   camMetrics, cameraFor, SKY_FRACTION, isSuspect, SUSPECT_WARM_RATIO, framePathFor,
-  splitFrames, frameDiff, isStatic,
+  fullFramePathFor, splitFrames, frameDiff, isStatic,
 } from './capture.mjs';
 import { findTodayPrediction, upsertVerification, taipeiToday, readJsonArray } from './verification.mjs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -165,6 +165,15 @@ test('isSuspect 門檻邊界：恰等於門檻不算可疑', () => {
   assert.equal(SUSPECT_WARM_RATIO, 0.9);
   assert.equal(isSuspect({ camWarmRatio: 0.9 }), false);
   assert.equal(isSuspect({ camWarmRatio: 0.901 }), true);
+});
+
+test('fullFramePathFor 放在 frames/full/ 底下，不與縮圖同名', () => {
+  assert.equal(fullFramePathFor('2026-08-11', 'gaomei', 'sunset'),
+    'frames/full/2026-08-11-gaomei-sunset.jpg');
+  // 兩者必須分屬不同路徑，否則 copyFile 會讓 320×180 原始影格覆蓋掉 160×90 縮圖，
+  // 前端 <img> 仍能顯示所以不會報錯，但縮圖會悄悄變成四倍大的檔案
+  assert.notEqual(fullFramePathFor('2026-08-11', 'gaomei', 'sunset'),
+    framePathFor('2026-08-11', 'gaomei', 'sunset'));
 });
 
 test('framePathFor 產生含地點的 docs/ 相對路徑', () => {

@@ -100,8 +100,19 @@ export function isSuspect(metrics) {
 // 縮圖存成 docs/frames/<date>-<location>-<kind>.jpg，紀錄裡存相對路徑（相對於 docs/，前端可直接連）
 export const framePathFor = (date, location, kind) => `frames/${date}-${location}-${kind}.jpg`;
 
+// 評分用的那一幀（320×180）另外存一份到 frames/full/。
+//
+// 為什麼縮圖不夠：2026-08-16 那筆真火燒雲，我拿 160×90 縮圖去算暖像素飽和度得到 0.168，
+// 據此判定為「霾」——結論是錯的。縮圖經過降尺度加二次 JPEG 壓縮，色彩統計早被壓平，
+// 和偵測器實際評分的 320×180 影格不可互換。原始影格抓完就丟，等於每次事後回顧都只能
+// 用一份失真的替代品。存下來之後，任何新的判別方法都能拿歷史資料重跑驗證。
+//
+// 只存第一幀：camMetrics 就是讀它算分的；第二幀唯一的用途是靜止畫面偵測，
+// 而那個結論已經以 frameDiffMean／frameDiffMax 存進紀錄，不需要留圖。
+export const fullFramePathFor = (date, location, kind) => `frames/full/${date}-${location}-${kind}.jpg`;
+
 async function main() {
-  const [kind, framePath, widthArg, heightArg, dateArg, thumbArg, locArg] = process.argv.slice(2);
+  const [kind, framePath, widthArg, heightArg, dateArg, thumbArg, locArg, fullArg] = process.argv.slice(2);
   const locationId = locArg || DEFAULT_LOCATION;
   const camera = cameraFor(locationId, kind); // 地點或場次不對就在這裡失敗
   const width = Number(widthArg), height = Number(heightArg);
@@ -133,6 +144,15 @@ async function main() {
     await copyFile(thumbArg, dest);
   }
 
+  // 評分用的原始影格，供日後改良判別方法時重跑歷史資料
+  let fullPathRel;
+  if (fullArg) {
+    fullPathRel = fullFramePathFor(date, locationId, kind);
+    const dest = new URL(`../docs/${fullPathRel}`, import.meta.url);
+    await mkdir(new URL('../docs/frames/full/', import.meta.url), { recursive: true });
+    await copyFile(fullArg, dest);
+  }
+
   const suspect = noSignal || isSuspect(metrics);
   const reason = noSignal
     ? `畫面靜止（相隔三秒兩幀完全相同，最大差異 0），判定為待機卡或串流凍結，不是真實天空`
@@ -152,6 +172,7 @@ async function main() {
     suspectReason: suspect ? reason : undefined,
     noSignal: noSignal || undefined,
     ...(framePathRel ? { frame: framePathRel } : {}),
+    ...(fullPathRel ? { fullFrame: fullPathRel } : {}),
     camera: camera.cameraName,
     capturedAt: new Date().toISOString(),
   });
