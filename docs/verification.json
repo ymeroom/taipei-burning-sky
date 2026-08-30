@@ -1213,5 +1213,21 @@
     "fullFrame": "frames/full/2026-08-30-gaomei-sunset.jpg",
     "camera": "高美濕地",
     "capturedAt": "2026-08-30T10:26:06.861Z"
+  },
+  {
+    "date": "2026-08-31",
+    "kind": "sunrise",
+    "location": "taipei",
+    "eventTime": "2026-08-31T05:34:00+08:00",
+    "predictedScore": 42,
+    "camWarmRatio": 0.033,
+    "camBrightRatio": 1,
+    "camBurnIndex": 8,
+    "frameDiffMean": 0.186,
+    "frameDiffMax": 32,
+    "frame": "frames/2026-08-31-taipei-sunrise.jpg",
+    "fullFrame": "frames/full/2026-08-31-taipei-sunrise.jpg",
+    "camera": "烘爐地",
+    "capturedAt": "2026-08-30T22:12:56.850Z"
   }
 ]
