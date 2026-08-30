@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-30T12:32:12.834Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-08-30T18:40:53.979Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -8,7 +8,7 @@
       "events": {
         "sunset": {
           "eventTime": "2026-08-31T18:14:00+08:00",
-          "score": 31,
+          "score": 30,
           "level": "普通",
           "factors": [
             {
@@ -46,8 +46,8 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 58%",
-              "score": 3,
+              "value": "降雨機率 66%",
+              "score": 2,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
             }
@@ -120,7 +120,7 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 19%",
+              "value": "降雨機率 13%",
               "score": 8,
               "max": 10,
               "reason": "有些降雨機率，可能攪局"
@@ -160,7 +160,7 @@
           "date": "2026-08-31",
           "sunset": {
             "time": "2026-08-31T18:14:00+08:00",
-            "score": 31
+            "score": 30
           },
           "sunrise": {
             "time": "2026-08-31T05:34:00+08:00",
@@ -171,22 +171,22 @@
           "date": "2026-09-01",
           "sunset": {
             "time": "2026-09-01T18:13:00+08:00",
-            "score": 27
+            "score": 26
           },
           "sunrise": {
             "time": "2026-09-01T05:34:00+08:00",
-            "score": 31
+            "score": 32
           }
         },
         {
           "date": "2026-09-02",
           "sunset": {
             "time": "2026-09-02T18:12:00+08:00",
-            "score": 28
+            "score": 29
           },
           "sunrise": {
             "time": "2026-09-02T05:35:00+08:00",
-            "score": 50
+            "score": 52
           }
         }
       ]
@@ -197,7 +197,7 @@
       "events": {
         "sunset": {
           "eventTime": "2026-08-31T18:15:00+08:00",
-          "score": 25,
+          "score": 26,
           "level": "普通",
           "factors": [
             {
@@ -235,8 +235,8 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 57%",
-              "score": 3,
+              "value": "降雨機率 52%",
+              "score": 4,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
             }
@@ -282,7 +282,7 @@
           "date": "2026-09-02",
           "sunset": {
             "time": "2026-09-02T18:13:00+08:00",
-            "score": 29
+            "score": 30
           }
         },
         {
@@ -338,7 +338,7 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 97%",
+              "value": "降雨機率 94%",
               "score": 0,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
@@ -403,7 +403,7 @@
       "events": {
         "sunrise": {
           "eventTime": "2026-08-31T05:38:00+08:00",
-          "score": 42,
+          "score": 44,
           "level": "普通",
           "factors": [
             {
@@ -441,8 +441,8 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 85%",
-              "score": 0,
+              "value": "降雨機率 65%",
+              "score": 2,
               "max": 10,
               "reason": "降雨機率高，大概率泡湯"
             }
@@ -481,7 +481,7 @@
           "date": "2026-09-01",
           "sunrise": {
             "time": "2026-09-01T05:39:00+08:00",
-            "score": 31
+            "score": 30
           }
         },
         {
