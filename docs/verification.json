@@ -2395,5 +2395,37 @@
     "fullFrame": "frames/full/2026-09-16-wanggaoliao-sunrise.jpg",
     "camera": "望高寮",
     "capturedAt": "2026-09-15T21:52:05.219Z"
+  },
+  {
+    "date": "2026-09-17",
+    "kind": "sunrise",
+    "location": "taipei",
+    "eventTime": "2026-09-17T05:40:00+08:00",
+    "predictedScore": 43,
+    "camWarmRatio": 0.428,
+    "camBrightRatio": 1,
+    "camBurnIndex": 100,
+    "frameDiffMean": 0.274,
+    "frameDiffMax": 46,
+    "frame": "frames/2026-09-17-taipei-sunrise.jpg",
+    "fullFrame": "frames/full/2026-09-17-taipei-sunrise.jpg",
+    "camera": "烘爐地",
+    "capturedAt": "2026-09-16T21:48:05.909Z"
+  },
+  {
+    "date": "2026-09-17",
+    "kind": "sunrise",
+    "location": "wanggaoliao",
+    "eventTime": "2026-09-17T05:44:00+08:00",
+    "predictedScore": 41,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0.565,
+    "frameDiffMax": 34,
+    "frame": "frames/2026-09-17-wanggaoliao-sunrise.jpg",
+    "fullFrame": "frames/full/2026-09-17-wanggaoliao-sunrise.jpg",
+    "camera": "望高寮",
+    "capturedAt": "2026-09-16T21:52:04.755Z"
   }
 ]
