@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-11T13:44:01.104Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-10-11T19:37:03.553Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -8,7 +8,7 @@
       "events": {
         "sunset": {
           "eventTime": "2026-10-12T17:30:00+08:00",
-          "score": 50,
+          "score": 51,
           "level": "值得一看",
           "factors": [
             {
@@ -31,7 +31,7 @@
               "key": "clarity",
               "name": "空氣通透度",
               "value": "濕度 78%・能見度 24km",
-              "score": 7,
+              "score": 8,
               "max": 15,
               "reason": "濕度或能見度普通，顏色打點折扣"
             },
@@ -55,7 +55,7 @@
           "lightPath": {
             "azimuth": 263,
             "pathLow": 0,
-            "centerLow": 0,
+            "centerLow": 1,
             "points": [
               {
                 "km": 40,
@@ -96,7 +96,7 @@
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 13%",
+              "value": "低雲 14%",
               "score": 20,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
@@ -104,7 +104,7 @@
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 96%・能見度 16km",
+              "value": "濕度 94%・能見度 16km",
               "score": 0,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
@@ -128,28 +128,28 @@
           ],
           "lightPath": {
             "azimuth": 97,
-            "pathLow": 17,
-            "centerLow": 8,
+            "pathLow": 16,
+            "centerLow": 12,
             "points": [
               {
                 "km": 40,
-                "low": 23
+                "low": 30
               },
               {
                 "km": 90,
-                "low": 23
-              },
-              {
-                "km": 150,
                 "low": 2
               },
               {
+                "km": 150,
+                "low": 18
+              },
+              {
                 "km": 220,
-                "low": 3
+                "low": 4
               },
               {
                 "km": 300,
-                "low": 29
+                "low": 23
               }
             ]
           }
@@ -160,7 +160,7 @@
           "date": "2026-10-12",
           "sunset": {
             "time": "2026-10-12T17:30:00+08:00",
-            "score": 50
+            "score": 51
           },
           "sunrise": {
             "time": "2026-10-12T05:50:00+08:00",
@@ -182,11 +182,11 @@
           "date": "2026-10-14",
           "sunset": {
             "time": "2026-10-14T17:28:00+08:00",
-            "score": 48
+            "score": 52
           },
           "sunrise": {
             "time": "2026-10-14T05:51:00+08:00",
-            "score": 32
+            "score": 23
           }
         }
       ]
@@ -219,7 +219,7 @@
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 74%・能見度 25km",
+              "value": "濕度 75%・能見度 25km",
               "score": 9,
               "max": 15,
               "reason": "濕度或能見度普通，顏色打點折扣"
@@ -282,14 +282,14 @@
           "date": "2026-10-14",
           "sunset": {
             "time": "2026-10-14T17:28:00+08:00",
-            "score": 46
+            "score": 50
           }
         },
         {
           "date": "2026-10-15",
           "sunset": {
             "time": "2026-10-15T17:27:00+08:00",
-            "score": 48
+            "score": 47
           }
         }
       ]
@@ -347,7 +347,7 @@
           "lightPath": {
             "azimuth": 263,
             "pathLow": 0,
-            "centerLow": 0,
+            "centerLow": 1,
             "points": [
               {
                 "km": 40,
@@ -378,21 +378,21 @@
           "date": "2026-10-13",
           "sunset": {
             "time": "2026-10-13T17:33:00+08:00",
-            "score": 53
+            "score": 54
           }
         },
         {
           "date": "2026-10-14",
           "sunset": {
             "time": "2026-10-14T17:32:00+08:00",
-            "score": 59
+            "score": 100
           }
         },
         {
           "date": "2026-10-15",
           "sunset": {
             "time": "2026-10-15T17:31:00+08:00",
-            "score": 47
+            "score": 44
           }
         }
       ]
@@ -403,7 +403,7 @@
       "events": {
         "sunrise": {
           "eventTime": "2026-10-12T05:53:00+08:00",
-          "score": 41,
+          "score": 43,
           "level": "普通",
           "factors": [
             {
@@ -417,8 +417,8 @@
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 25%",
-              "score": 16,
+              "value": "低雲 19%",
+              "score": 18,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
@@ -449,20 +449,20 @@
           ],
           "lightPath": {
             "azimuth": 97,
-            "pathLow": 42,
-            "centerLow": 0,
+            "pathLow": 31,
+            "centerLow": 1,
             "points": [
               {
                 "km": 40,
-                "low": 41
+                "low": 44
               },
               {
                 "km": 90,
-                "low": 48
+                "low": 12
               },
               {
                 "km": 150,
-                "low": 46
+                "low": 41
               },
               {
                 "km": 220,
@@ -470,7 +470,7 @@
               },
               {
                 "km": 300,
-                "low": 29
+                "low": 11
               }
             ]
           }
@@ -481,21 +481,21 @@
           "date": "2026-10-13",
           "sunrise": {
             "time": "2026-10-13T05:54:00+08:00",
-            "score": 37
+            "score": 44
           }
         },
         {
           "date": "2026-10-14",
           "sunrise": {
             "time": "2026-10-14T05:54:00+08:00",
-            "score": 45
+            "score": 41
           }
         },
         {
           "date": "2026-10-15",
           "sunrise": {
             "time": "2026-10-15T05:55:00+08:00",
-            "score": 33
+            "score": 44
           }
         }
       ]
