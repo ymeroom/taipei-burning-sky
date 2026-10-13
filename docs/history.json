@@ -7801,5 +7801,64 @@
         }
       }
     }
+  },
+  {
+    "ranAt": "2026-10-13T14:45:15.511Z",
+    "trigger": "sunset-run",
+    "locations": {
+      "taipei": {
+        "sunsetScore": 51,
+        "sunsetTime": "2026-10-14T17:28:00+08:00",
+        "sunsetFactors": {
+          "canvas": 6,
+          "lowCloud": 22,
+          "clarity": 10,
+          "aerosol": 3,
+          "rain": 10
+        },
+        "sunriseScore": 32,
+        "sunriseTime": "2026-10-14T05:51:00+08:00",
+        "sunriseFactors": {
+          "canvas": 0,
+          "lowCloud": 17,
+          "clarity": 0,
+          "aerosol": 5,
+          "rain": 10
+        }
+      },
+      "tamsui": {
+        "sunsetScore": 43,
+        "sunsetTime": "2026-10-14T17:28:00+08:00",
+        "sunsetFactors": {
+          "canvas": 1,
+          "lowCloud": 21,
+          "clarity": 10,
+          "aerosol": 3,
+          "rain": 8
+        }
+      },
+      "gaomei": {
+        "sunsetScore": 57,
+        "sunsetTime": "2026-10-14T17:32:00+08:00",
+        "sunsetFactors": {
+          "canvas": 0,
+          "lowCloud": 24,
+          "clarity": 15,
+          "aerosol": 8,
+          "rain": 10
+        }
+      },
+      "wanggaoliao": {
+        "sunriseScore": 41,
+        "sunriseTime": "2026-10-14T05:54:00+08:00",
+        "sunriseFactors": {
+          "canvas": 0,
+          "lowCloud": 23,
+          "clarity": 8,
+          "aerosol": 0,
+          "rain": 10
+        }
+      }
+    }
   }
 ]
