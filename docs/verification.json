@@ -4487,5 +4487,40 @@
     "fullFrame": "frames/full/2026-10-15-gaomei-sunset.jpg",
     "camera": "高美濕地",
     "capturedAt": "2026-10-15T09:39:48.340Z"
+  },
+  {
+    "date": "2026-10-16",
+    "kind": "sunrise",
+    "location": "taipei",
+    "eventTime": "2026-10-16T05:52:00+08:00",
+    "predictedScore": 75,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0.015,
+    "frameDiffMax": 26,
+    "frame": "frames/2026-10-16-taipei-sunrise.jpg",
+    "fullFrame": "frames/full/2026-10-16-taipei-sunrise.jpg",
+    "camera": "烘爐地",
+    "capturedAt": "2026-10-15T22:00:29.724Z"
+  },
+  {
+    "date": "2026-10-16",
+    "kind": "sunrise",
+    "location": "wanggaoliao",
+    "eventTime": "2026-10-16T05:55:00+08:00",
+    "predictedScore": 39,
+    "camWarmRatio": 0.001,
+    "camBrightRatio": 0.005,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0,
+    "frameDiffMax": 0,
+    "suspect": true,
+    "suspectReason": "畫面靜止（相隔三秒兩幀完全相同，最大差異 0），判定為待機卡或串流凍結，不是真實天空",
+    "noSignal": true,
+    "frame": "frames/2026-10-16-wanggaoliao-sunrise.jpg",
+    "fullFrame": "frames/full/2026-10-16-wanggaoliao-sunrise.jpg",
+    "camera": "望高寮",
+    "capturedAt": "2026-10-15T22:03:49.005Z"
   }
 ]
