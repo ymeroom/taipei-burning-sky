@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-24T11:48:43.182Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-10-24T18:15:31.527Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -8,29 +8,29 @@
       "events": {
         "sunset": {
           "eventTime": "2026-10-25T17:18:00+08:00",
-          "score": 81,
+          "score": 85,
           "level": "大燒預警",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 62%",
-              "score": 37,
+              "value": "中高雲合計 55%",
+              "score": 40,
               "max": 40,
-              "reason": "中高雲偏厚，陽光較難透入染色"
+              "reason": "中高雲量恰到好處，畫布漂亮"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 25%",
-              "score": 16,
+              "value": "低雲 23%",
+              "score": 17,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 76%・能見度 26km",
+              "value": "濕度 75%・能見度 26km",
               "score": 8,
               "max": 15,
               "reason": "濕度或能見度普通，顏色打點折扣"
@@ -55,57 +55,57 @@
           "lightPath": {
             "azimuth": 257,
             "pathLow": 5,
-            "centerLow": 56,
+            "centerLow": 50,
             "points": [
               {
                 "km": 40,
-                "low": 12
+                "low": 16
               },
               {
                 "km": 90,
-                "low": 2
+                "low": 1
               },
               {
                 "km": 150,
-                "low": 2
+                "low": 0
               },
               {
                 "km": 220,
-                "low": 1
+                "low": 0
               },
               {
                 "km": 300,
-                "low": 1
+                "low": 0
               }
             ]
           }
         },
         "sunrise": {
           "eventTime": "2026-10-25T05:57:00+08:00",
-          "score": 35,
-          "level": "普通",
+          "score": 55,
+          "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 96%",
-              "score": 0,
+              "value": "中高雲合計 75%",
+              "score": 23,
               "max": 40,
-              "reason": "天空整片糊住，光透不進來"
+              "reason": "中高雲偏厚，陽光較難透入染色"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 35%",
-              "score": 13,
+              "value": "低雲 36%",
+              "score": 12,
               "max": 25,
               "reason": "低雲偏多，地平線光線容易被擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 91%・能見度 20km",
-              "score": 2,
+              "value": "濕度 94%・能見度 10km",
+              "score": 0,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
             },
@@ -128,12 +128,12 @@
           ],
           "lightPath": {
             "azimuth": 103,
-            "pathLow": 53,
-            "centerLow": 8,
+            "pathLow": 57,
+            "centerLow": 5,
             "points": [
               {
                 "km": 40,
-                "low": 5
+                "low": 2
               },
               {
                 "km": 90,
@@ -141,7 +141,7 @@
               },
               {
                 "km": 150,
-                "low": 36
+                "low": 35
               },
               {
                 "km": 220,
@@ -149,7 +149,7 @@
               },
               {
                 "km": 300,
-                "low": 38
+                "low": 98
               }
             ]
           }
@@ -160,33 +160,33 @@
           "date": "2026-10-25",
           "sunset": {
             "time": "2026-10-25T17:18:00+08:00",
-            "score": 81
+            "score": 85
           },
           "sunrise": {
             "time": "2026-10-25T05:57:00+08:00",
-            "score": 35
+            "score": 55
           }
         },
         {
           "date": "2026-10-26",
           "sunset": {
             "time": "2026-10-26T17:17:00+08:00",
-            "score": 50
+            "score": 40
           },
           "sunrise": {
             "time": "2026-10-26T05:57:00+08:00",
-            "score": 34
+            "score": 35
           }
         },
         {
           "date": "2026-10-27",
           "sunset": {
             "time": "2026-10-27T17:17:00+08:00",
-            "score": 73
+            "score": 61
           },
           "sunrise": {
             "time": "2026-10-27T05:58:00+08:00",
-            "score": 39
+            "score": 38
           }
         }
       ]
@@ -197,13 +197,13 @@
       "events": {
         "sunset": {
           "eventTime": "2026-10-25T17:19:00+08:00",
-          "score": 84,
+          "score": 86,
           "level": "大燒預警",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 55%",
+              "value": "中高雲合計 47%",
               "score": 40,
               "max": 40,
               "reason": "中高雲量恰到好處，畫布漂亮"
@@ -211,16 +211,16 @@
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 26%",
-              "score": 16,
+              "value": "低雲 23%",
+              "score": 17,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 76%・能見度 25km",
-              "score": 8,
+              "value": "濕度 75%・能見度 26km",
+              "score": 9,
               "max": 15,
               "reason": "濕度或能見度普通，顏色打點折扣"
             },
@@ -244,11 +244,11 @@
           "lightPath": {
             "azimuth": 257,
             "pathLow": 10,
-            "centerLow": 51,
+            "centerLow": 42,
             "points": [
               {
                 "km": 40,
-                "low": 29
+                "low": 32
               },
               {
                 "km": 90,
@@ -256,15 +256,15 @@
               },
               {
                 "km": 150,
-                "low": 1
+                "low": 0
               },
               {
                 "km": 220,
-                "low": 1
+                "low": 0
               },
               {
                 "km": 300,
-                "low": 1
+                "low": 2
               }
             ]
           }
@@ -275,21 +275,21 @@
           "date": "2026-10-26",
           "sunset": {
             "time": "2026-10-26T17:18:00+08:00",
-            "score": 47
+            "score": 40
           }
         },
         {
           "date": "2026-10-27",
           "sunset": {
             "time": "2026-10-27T17:17:00+08:00",
-            "score": 42
+            "score": 28
           }
         },
         {
           "date": "2026-10-28",
           "sunset": {
             "time": "2026-10-28T17:16:00+08:00",
-            "score": 37
+            "score": 57
           }
         }
       ]
@@ -300,16 +300,16 @@
       "events": {
         "sunset": {
           "eventTime": "2026-10-25T17:23:00+08:00",
-          "score": 87,
+          "score": 93,
           "level": "大燒預警",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 65%",
-              "score": 34,
+              "value": "中高雲合計 40%",
+              "score": 40,
               "max": 40,
-              "reason": "中高雲偏厚，陽光較難透入染色"
+              "reason": "中高雲量恰到好處，畫布漂亮"
             },
             {
               "key": "lowCloud",
@@ -338,7 +338,7 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 2%",
+              "value": "降雨機率 0%",
               "score": 10,
               "max": 10,
               "reason": "無降雨干擾"
@@ -346,16 +346,16 @@
           ],
           "lightPath": {
             "azimuth": 257,
-            "pathLow": 0,
+            "pathLow": 1,
             "centerLow": 2,
             "points": [
               {
                 "km": 40,
-                "low": 0
+                "low": 1
               },
               {
                 "km": 90,
-                "low": 1
+                "low": 2
               },
               {
                 "km": 150,
@@ -378,21 +378,21 @@
           "date": "2026-10-26",
           "sunset": {
             "time": "2026-10-26T17:22:00+08:00",
-            "score": 52
+            "score": 51
           }
         },
         {
           "date": "2026-10-27",
           "sunset": {
             "time": "2026-10-27T17:21:00+08:00",
-            "score": 58
+            "score": 59
           }
         },
         {
           "date": "2026-10-28",
           "sunset": {
             "time": "2026-10-28T17:20:00+08:00",
-            "score": 56
+            "score": 54
           }
         }
       ]
@@ -403,32 +403,32 @@
       "events": {
         "sunrise": {
           "eventTime": "2026-10-25T05:59:00+08:00",
-          "score": 52,
-          "level": "值得一看",
+          "score": 43,
+          "level": "普通",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 85%",
-              "score": 11,
+              "value": "中高雲合計 100%",
+              "score": 0,
               "max": 40,
-              "reason": "中高雲偏厚，陽光較難透入染色"
+              "reason": "天空整片糊住，光透不進來"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 32%",
-              "score": 13,
+              "value": "低雲 42%",
+              "score": 10,
               "max": 25,
               "reason": "低雲偏多，地平線光線容易被擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 76%・能見度 25km",
-              "score": 8,
+              "value": "濕度 65%・能見度 28km",
+              "score": 13,
               "max": 15,
-              "reason": "濕度或能見度普通，顏色打點折扣"
+              "reason": "空氣乾爽通透，顏色會很飽和"
             },
             {
               "key": "aerosol",
@@ -441,7 +441,7 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 1%",
+              "value": "降雨機率 0%",
               "score": 10,
               "max": 10,
               "reason": "無降雨干擾"
@@ -449,28 +449,28 @@
           ],
           "lightPath": {
             "azimuth": 102,
-            "pathLow": 54,
-            "centerLow": 0,
+            "pathLow": 68,
+            "centerLow": 2,
             "points": [
               {
                 "km": 40,
-                "low": 5
+                "low": 12
               },
               {
                 "km": 90,
-                "low": 99
+                "low": 100
               },
               {
                 "km": 150,
-                "low": 41
+                "low": 100
               },
               {
                 "km": 220,
-                "low": 90
+                "low": 100
               },
               {
                 "km": 300,
-                "low": 60
+                "low": 46
               }
             ]
           }
@@ -481,21 +481,21 @@
           "date": "2026-10-26",
           "sunrise": {
             "time": "2026-10-26T06:00:00+08:00",
-            "score": 30
+            "score": 29
           }
         },
         {
           "date": "2026-10-27",
           "sunrise": {
             "time": "2026-10-27T06:00:00+08:00",
-            "score": 37
+            "score": 35
           }
         },
         {
           "date": "2026-10-28",
           "sunrise": {
             "time": "2026-10-28T06:01:00+08:00",
-            "score": 37
+            "score": 33
           }
         }
       ]
