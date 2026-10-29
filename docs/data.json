@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-29T13:54:03.089Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-10-29T20:23:23.604Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -275,7 +275,7 @@
           "date": "2026-10-31",
           "sunset": {
             "time": "2026-10-31T17:14:00+08:00",
-            "score": 44
+            "score": 43
           }
         },
         {
@@ -441,7 +441,7 @@
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 0%",
+              "value": "降雨機率 2%",
               "score": 10,
               "max": 10,
               "reason": "無降雨干擾"
