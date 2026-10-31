@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-31T13:15:24.227Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-10-31T19:24:00.367Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -171,7 +171,7 @@
           "date": "2026-11-02",
           "sunset": {
             "time": "2026-11-02T17:12:00+08:00",
-            "score": 59
+            "score": 60
           },
           "sunrise": {
             "time": "2026-11-02T06:01:00+08:00",
@@ -282,7 +282,7 @@
           "date": "2026-11-03",
           "sunset": {
             "time": "2026-11-03T17:12:00+08:00",
-            "score": 36
+            "score": 34
           }
         },
         {
