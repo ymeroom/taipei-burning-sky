@@ -5614,5 +5614,53 @@
     "fullFrame": "frames/full/2026-11-02-wanggaoliao-sunrise.jpg",
     "camera": "望高寮",
     "capturedAt": "2026-11-01T22:12:18.982Z"
+  },
+  {
+    "date": "2026-11-02",
+    "kind": "sunset",
+    "location": "taipei",
+    "eventTime": "2026-11-02T17:12:00+08:00",
+    "predictedScore": 55,
+    "camWarmRatio": 0.025,
+    "camBrightRatio": 1,
+    "camBurnIndex": 6,
+    "frameDiffMean": 2.118,
+    "frameDiffMax": 110,
+    "frame": "frames/2026-11-02-taipei-sunset.jpg",
+    "fullFrame": "frames/full/2026-11-02-taipei-sunset.jpg",
+    "camera": "象山看台北",
+    "capturedAt": "2026-11-02T09:20:08.787Z"
+  },
+  {
+    "date": "2026-11-02",
+    "kind": "sunset",
+    "location": "tamsui",
+    "eventTime": "2026-11-02T17:13:00+08:00",
+    "predictedScore": 52,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0.846,
+    "frameDiffMax": 96,
+    "frame": "frames/2026-11-02-tamsui-sunset.jpg",
+    "fullFrame": "frames/full/2026-11-02-tamsui-sunset.jpg",
+    "camera": "淡水漁人碼頭",
+    "capturedAt": "2026-11-02T09:21:07.277Z"
+  },
+  {
+    "date": "2026-11-02",
+    "kind": "sunset",
+    "location": "gaomei",
+    "eventTime": "2026-11-02T17:17:00+08:00",
+    "predictedScore": 42,
+    "camWarmRatio": 0.232,
+    "camBrightRatio": 1,
+    "camBurnIndex": 58,
+    "frameDiffMean": 1.566,
+    "frameDiffMax": 125,
+    "frame": "frames/2026-11-02-gaomei-sunset.jpg",
+    "fullFrame": "frames/full/2026-11-02-gaomei-sunset.jpg",
+    "camera": "高美濕地",
+    "capturedAt": "2026-11-02T09:25:07.056Z"
   }
 ]
