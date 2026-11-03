@@ -5742,5 +5742,37 @@
     "fullFrame": "frames/full/2026-11-03-gaomei-sunset.jpg",
     "camera": "高美濕地",
     "capturedAt": "2026-11-03T09:25:06.451Z"
+  },
+  {
+    "date": "2026-11-04",
+    "kind": "sunrise",
+    "location": "taipei",
+    "eventTime": "2026-11-04T06:03:00+08:00",
+    "predictedScore": 48,
+    "camWarmRatio": 0.01,
+    "camBrightRatio": 0.986,
+    "camBurnIndex": 3,
+    "frameDiffMean": 30.182,
+    "frameDiffMax": 232,
+    "frame": "frames/2026-11-04-taipei-sunrise.jpg",
+    "fullFrame": "frames/full/2026-11-04-taipei-sunrise.jpg",
+    "camera": "烘爐地",
+    "capturedAt": "2026-11-03T22:11:46.021Z"
+  },
+  {
+    "date": "2026-11-04",
+    "kind": "sunrise",
+    "location": "wanggaoliao",
+    "eventTime": "2026-11-04T06:05:00+08:00",
+    "predictedScore": 31,
+    "camWarmRatio": 0,
+    "camBrightRatio": 1,
+    "camBurnIndex": 0,
+    "frameDiffMean": 0.004,
+    "frameDiffMax": 26,
+    "frame": "frames/2026-11-04-wanggaoliao-sunrise.jpg",
+    "fullFrame": "frames/full/2026-11-04-wanggaoliao-sunrise.jpg",
+    "camera": "望高寮",
+    "capturedAt": "2026-11-03T22:13:16.120Z"
   }
 ]
