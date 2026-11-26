@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T17:29:21.943Z",
-  "trigger": "sunset-run",
+  "generatedAt": "2026-11-26T23:55:27.400Z",
+  "trigger": "sunrise-run",
   "locations": [
     {
       "id": "taipei",
@@ -8,37 +8,111 @@
       "events": {
         "sunset": {
           "eventTime": "2026-11-27T17:03:00+08:00",
-          "score": 45,
-          "level": "普通",
+          "score": 82,
+          "level": "大燒預警",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 100%",
-              "score": 0,
+              "value": "中高雲合計 34%",
+              "score": 40,
               "max": 40,
-              "reason": "天空整片糊住，光透不進來"
+              "reason": "中高雲量恰到好處，畫布漂亮"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 18%",
-              "score": 19,
+              "value": "低雲 26%",
+              "score": 16,
               "max": 25,
               "reason": "少量低雲，稍有遮擋"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 81%・能見度 17km",
+              "value": "濕度 80%・能見度 28km",
               "score": 6,
+              "max": 15,
+              "reason": "濕度或能見度普通，顏色打點折扣"
+            },
+            {
+              "key": "aerosol",
+              "name": "氣溶膠",
+              "value": "AOD 0.27",
+              "score": 10,
+              "max": 10,
+              "reason": "氣溶膠適中，散射出漂亮橘紅"
+            },
+            {
+              "key": "rain",
+              "name": "降雨干擾",
+              "value": "降雨機率 4%",
+              "score": 10,
+              "max": 10,
+              "reason": "無降雨干擾"
+            }
+          ],
+          "lightPath": {
+            "azimuth": 247,
+            "pathLow": 6,
+            "centerLow": 55,
+            "points": [
+              {
+                "km": 40,
+                "low": 20
+              },
+              {
+                "km": 90,
+                "low": 1
+              },
+              {
+                "km": 150,
+                "low": 0
+              },
+              {
+                "km": 220,
+                "low": 1
+              },
+              {
+                "km": 300,
+                "low": 0
+              }
+            ]
+          }
+        },
+        "sunrise": {
+          "eventTime": "2026-11-28T06:19:00+08:00",
+          "score": 71,
+          "level": "值得一看",
+          "factors": [
+            {
+              "key": "canvas",
+              "name": "中高雲畫布",
+              "value": "中高雲合計 27%",
+              "score": 40,
+              "max": 40,
+              "reason": "中高雲量恰到好處，畫布漂亮"
+            },
+            {
+              "key": "lowCloud",
+              "name": "低雲阻擋",
+              "value": "低雲 39%",
+              "score": 11,
+              "max": 25,
+              "reason": "低雲偏多，地平線光線容易被擋"
+            },
+            {
+              "key": "clarity",
+              "name": "空氣通透度",
+              "value": "濕度 98%・能見度 1km",
+              "score": 0,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
             },
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.24",
+              "value": "AOD 0.17",
               "score": 10,
               "max": 10,
               "reason": "氣溶膠適中，散射出漂亮橘紅"
@@ -53,17 +127,132 @@
             }
           ],
           "lightPath": {
-            "azimuth": 247,
-            "pathLow": 6,
-            "centerLow": 35,
+            "azimuth": 113,
+            "pathLow": 27,
+            "centerLow": 56,
             "points": [
               {
                 "km": 40,
-                "low": 18
+                "low": 48
               },
               {
                 "km": 90,
-                "low": 2
+                "low": 11
+              },
+              {
+                "km": 150,
+                "low": 0
+              },
+              {
+                "km": 220,
+                "low": 1
+              },
+              {
+                "km": 300,
+                "low": 99
+              }
+            ]
+          }
+        }
+      },
+      "outlook": [
+        {
+          "date": "2026-11-28",
+          "sunset": {
+            "time": "2026-11-28T17:03:00+08:00",
+            "score": 83
+          },
+          "sunrise": {
+            "time": "2026-11-28T06:19:00+08:00",
+            "score": 71
+          }
+        },
+        {
+          "date": "2026-11-29",
+          "sunset": {
+            "time": "2026-11-29T17:03:00+08:00",
+            "score": 88
+          },
+          "sunrise": {
+            "time": "2026-11-29T06:20:00+08:00",
+            "score": 76
+          }
+        },
+        {
+          "date": "2026-11-30",
+          "sunset": {
+            "time": "2026-11-30T17:03:00+08:00",
+            "score": 70
+          },
+          "sunrise": {
+            "time": "2026-11-30T06:21:00+08:00",
+            "score": 37
+          }
+        }
+      ]
+    },
+    {
+      "id": "tamsui",
+      "name": "淡水漁人碼頭",
+      "events": {
+        "sunset": {
+          "eventTime": "2026-11-27T17:04:00+08:00",
+          "score": 45,
+          "level": "普通",
+          "factors": [
+            {
+              "key": "canvas",
+              "name": "中高雲畫布",
+              "value": "中高雲合計 99%",
+              "score": 0,
+              "max": 40,
+              "reason": "天空整片糊住，光透不進來"
+            },
+            {
+              "key": "lowCloud",
+              "name": "低雲阻擋",
+              "value": "低雲 13%",
+              "score": 20,
+              "max": 25,
+              "reason": "少量低雲，稍有遮擋"
+            },
+            {
+              "key": "clarity",
+              "name": "空氣通透度",
+              "value": "濕度 81%・能見度 15km",
+              "score": 6,
+              "max": 15,
+              "reason": "空氣又濕又濁，色彩會很淡"
+            },
+            {
+              "key": "aerosol",
+              "name": "氣溶膠",
+              "value": "AOD 0.27",
+              "score": 10,
+              "max": 10,
+              "reason": "氣溶膠適中，散射出漂亮橘紅"
+            },
+            {
+              "key": "rain",
+              "name": "降雨干擾",
+              "value": "降雨機率 6%",
+              "score": 9,
+              "max": 10,
+              "reason": "無降雨干擾"
+            }
+          ],
+          "lightPath": {
+            "azimuth": 247,
+            "pathLow": 2,
+            "centerLow": 30,
+            "points": [
+              {
+                "km": 40,
+                "low": 5
+              },
+              {
+                "km": 90,
+                "low": 0
               },
               {
                 "km": 150,
@@ -75,15 +264,44 @@
               },
               {
                 "km": 300,
-                "low": 0
+                "low": 1
               }
             ]
           }
+        }
+      },
+      "outlook": [
+        {
+          "date": "2026-11-28",
+          "sunset": {
+            "time": "2026-11-28T17:04:00+08:00",
+            "score": 77
+          }
         },
-        "sunrise": {
-          "eventTime": "2026-11-27T06:18:00+08:00",
-          "score": 28,
-          "level": "普通",
+        {
+          "date": "2026-11-29",
+          "sunset": {
+            "time": "2026-11-29T17:04:00+08:00",
+            "score": 97
+          }
+        },
+        {
+          "date": "2026-11-30",
+          "sunset": {
+            "time": "2026-11-30T17:04:00+08:00",
+            "score": 77
+          }
+        }
+      ]
+    },
+    {
+      "id": "gaomei",
+      "name": "高美濕地",
+      "events": {
+        "sunset": {
+          "eventTime": "2026-11-27T17:09:00+08:00",
+          "score": 50,
+          "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
@@ -96,16 +314,16 @@
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 47%",
-              "score": 8,
+              "value": "低雲 1%",
+              "score": 25,
               "max": 25,
-              "reason": "低雲偏多，地平線光線容易被擋"
+              "reason": "低空乾淨，光路無阻"
             },
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 96%・能見度 0km",
-              "score": 0,
+              "value": "濕度 83%・能見度 23km",
+              "score": 5,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
             },
@@ -127,226 +345,8 @@
             }
           ],
           "lightPath": {
-            "azimuth": 113,
-            "pathLow": 33,
-            "centerLow": 68,
-            "points": [
-              {
-                "km": 40,
-                "low": 48
-              },
-              {
-                "km": 90,
-                "low": 49
-              },
-              {
-                "km": 150,
-                "low": 28
-              },
-              {
-                "km": 220,
-                "low": 4
-              },
-              {
-                "km": 300,
-                "low": 6
-              }
-            ]
-          }
-        }
-      },
-      "outlook": [
-        {
-          "date": "2026-11-27",
-          "sunset": {
-            "time": "2026-11-27T17:03:00+08:00",
-            "score": 45
-          },
-          "sunrise": {
-            "time": "2026-11-27T06:18:00+08:00",
-            "score": 28
-          }
-        },
-        {
-          "date": "2026-11-28",
-          "sunset": {
-            "time": "2026-11-28T17:03:00+08:00",
-            "score": 59
-          },
-          "sunrise": {
-            "time": "2026-11-28T06:19:00+08:00",
-            "score": 65
-          }
-        },
-        {
-          "date": "2026-11-29",
-          "sunset": {
-            "time": "2026-11-29T17:03:00+08:00",
-            "score": 93
-          },
-          "sunrise": {
-            "time": "2026-11-29T06:20:00+08:00",
-            "score": 75
-          }
-        }
-      ]
-    },
-    {
-      "id": "tamsui",
-      "name": "淡水漁人碼頭",
-      "events": {
-        "sunset": {
-          "eventTime": "2026-11-27T17:04:00+08:00",
-          "score": 49,
-          "level": "普通",
-          "factors": [
-            {
-              "key": "canvas",
-              "name": "中高雲畫布",
-              "value": "中高雲合計 100%",
-              "score": 0,
-              "max": 40,
-              "reason": "天空整片糊住，光透不進來"
-            },
-            {
-              "key": "lowCloud",
-              "name": "低雲阻擋",
-              "value": "低雲 5%",
-              "score": 23,
-              "max": 25,
-              "reason": "少量低雲，稍有遮擋"
-            },
-            {
-              "key": "clarity",
-              "name": "空氣通透度",
-              "value": "濕度 80%・能見度 26km",
-              "score": 6,
-              "max": 15,
-              "reason": "濕度或能見度普通，顏色打點折扣"
-            },
-            {
-              "key": "aerosol",
-              "name": "氣溶膠",
-              "value": "AOD 0.24",
-              "score": 10,
-              "max": 10,
-              "reason": "氣溶膠適中，散射出漂亮橘紅"
-            },
-            {
-              "key": "rain",
-              "name": "降雨干擾",
-              "value": "降雨機率 0%",
-              "score": 10,
-              "max": 10,
-              "reason": "無降雨干擾"
-            }
-          ],
-          "lightPath": {
             "azimuth": 247,
             "pathLow": 1,
-            "centerLow": 11,
-            "points": [
-              {
-                "km": 40,
-                "low": 4
-              },
-              {
-                "km": 90,
-                "low": 0
-              },
-              {
-                "km": 150,
-                "low": 0
-              },
-              {
-                "km": 220,
-                "low": 0
-              },
-              {
-                "km": 300,
-                "low": 0
-              }
-            ]
-          }
-        }
-      },
-      "outlook": [
-        {
-          "date": "2026-11-28",
-          "sunset": {
-            "time": "2026-11-28T17:04:00+08:00",
-            "score": 65
-          }
-        },
-        {
-          "date": "2026-11-29",
-          "sunset": {
-            "time": "2026-11-29T17:04:00+08:00",
-            "score": 61
-          }
-        },
-        {
-          "date": "2026-11-30",
-          "sunset": {
-            "time": "2026-11-30T17:04:00+08:00",
-            "score": 55
-          }
-        }
-      ]
-    },
-    {
-      "id": "gaomei",
-      "name": "高美濕地",
-      "events": {
-        "sunset": {
-          "eventTime": "2026-11-27T17:09:00+08:00",
-          "score": 89,
-          "level": "大燒預警",
-          "factors": [
-            {
-              "key": "canvas",
-              "name": "中高雲畫布",
-              "value": "中高雲合計 35%",
-              "score": 40,
-              "max": 40,
-              "reason": "中高雲量恰到好處，畫布漂亮"
-            },
-            {
-              "key": "lowCloud",
-              "name": "低雲阻擋",
-              "value": "低雲 0%",
-              "score": 25,
-              "max": 25,
-              "reason": "低空乾淨，光路無阻"
-            },
-            {
-              "key": "clarity",
-              "name": "空氣通透度",
-              "value": "濕度 82%・能見度 24km",
-              "score": 5,
-              "max": 15,
-              "reason": "空氣又濕又濁，色彩會很淡"
-            },
-            {
-              "key": "aerosol",
-              "name": "氣溶膠",
-              "value": "AOD 0.18",
-              "score": 10,
-              "max": 10,
-              "reason": "氣溶膠適中，散射出漂亮橘紅"
-            },
-            {
-              "key": "rain",
-              "name": "降雨干擾",
-              "value": "降雨機率 6%",
-              "score": 9,
-              "max": 10,
-              "reason": "無降雨干擾"
-            }
-          ],
-          "lightPath": {
-            "azimuth": 247,
-            "pathLow": 0,
             "centerLow": 0,
             "points": [
               {
@@ -355,11 +355,11 @@
               },
               {
                 "km": 90,
-                "low": 0
+                "low": 1
               },
               {
                 "km": 150,
-                "low": 0
+                "low": 6
               },
               {
                 "km": 220,
@@ -378,21 +378,21 @@
           "date": "2026-11-28",
           "sunset": {
             "time": "2026-11-28T17:09:00+08:00",
-            "score": 78
+            "score": 81
           }
         },
         {
           "date": "2026-11-29",
           "sunset": {
             "time": "2026-11-29T17:09:00+08:00",
-            "score": 71
+            "score": 75
           }
         },
         {
           "date": "2026-11-30",
           "sunset": {
             "time": "2026-11-30T17:09:00+08:00",
-            "score": 52
+            "score": 87
           }
         }
       ]
@@ -402,22 +402,22 @@
       "name": "望高寮",
       "events": {
         "sunrise": {
-          "eventTime": "2026-11-27T06:20:00+08:00",
-          "score": 38,
-          "level": "普通",
+          "eventTime": "2026-11-28T06:21:00+08:00",
+          "score": 57,
+          "level": "值得一看",
           "factors": [
             {
               "key": "canvas",
               "name": "中高雲畫布",
-              "value": "中高雲合計 100%",
-              "score": 0,
+              "value": "中高雲合計 79%",
+              "score": 19,
               "max": 40,
-              "reason": "天空整片糊住，光透不進來"
+              "reason": "中高雲偏厚，陽光較難透入染色"
             },
             {
               "key": "lowCloud",
               "name": "低雲阻擋",
-              "value": "低雲 33%",
+              "value": "低雲 34%",
               "score": 13,
               "max": 25,
               "reason": "低雲偏多，地平線光線容易被擋"
@@ -425,7 +425,7 @@
             {
               "key": "clarity",
               "name": "空氣通透度",
-              "value": "濕度 83%・能見度 24km",
+              "value": "濕度 65%・能見度 10km",
               "score": 5,
               "max": 15,
               "reason": "空氣又濕又濁，色彩會很淡"
@@ -433,15 +433,15 @@
             {
               "key": "aerosol",
               "name": "氣溶膠",
-              "value": "AOD 0.32",
+              "value": "AOD 0.23",
               "score": 10,
               "max": 10,
-              "reason": "空氣偏髒，紅光會被壓暗"
+              "reason": "氣溶膠適中，散射出漂亮橘紅"
             },
             {
               "key": "rain",
               "name": "降雨干擾",
-              "value": "降雨機率 2%",
+              "value": "降雨機率 0%",
               "score": 10,
               "max": 10,
               "reason": "無降雨干擾"
@@ -449,28 +449,28 @@
           ],
           "lightPath": {
             "azimuth": 113,
-            "pathLow": 52,
-            "centerLow": 4,
+            "pathLow": 57,
+            "centerLow": 0,
             "points": [
               {
                 "km": 40,
-                "low": 24
+                "low": 6
               },
               {
                 "km": 90,
-                "low": 33
+                "low": 79
               },
               {
                 "km": 150,
-                "low": 100
+                "low": 73
               },
               {
                 "km": 220,
-                "low": 94
+                "low": 74
               },
               {
                 "km": 300,
-                "low": 21
+                "low": 100
               }
             ]
           }
@@ -478,24 +478,24 @@
       },
       "outlook": [
         {
-          "date": "2026-11-28",
-          "sunrise": {
-            "time": "2026-11-28T06:21:00+08:00",
-            "score": 48
-          }
-        },
-        {
           "date": "2026-11-29",
           "sunrise": {
             "time": "2026-11-29T06:22:00+08:00",
-            "score": 71
+            "score": 88
           }
         },
         {
           "date": "2026-11-30",
           "sunrise": {
             "time": "2026-11-30T06:23:00+08:00",
-            "score": 76
+            "score": 69
+          }
+        },
+        {
+          "date": "2026-12-01",
+          "sunrise": {
+            "time": "2026-12-01T06:23:00+08:00",
+            "score": 67
           }
         }
       ]
